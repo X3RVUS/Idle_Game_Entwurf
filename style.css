@@ -1,0 +1,173 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #0d0d2b;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    font-family: Arial, sans-serif;
+    color: #e0e0e0;
+}
+
+#game-container {
+    position: relative;
+    width: 400px; /* Feste Breite wie Handy */
+    height: 700px; /* Feste Höhe wie Handy */
+    border: 2px solid #5a5a8a;
+    background-color: #1a1a3a;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
+    transform-origin: center center;
+    transition: transform 0.1s ease-out;
+}
+
+/* Das zentrale Raumschiff */
+#mining-base {
+    position: absolute;
+    width: 300px;
+    height: 100px;
+    background-color: #5a5a5a;
+    left: 50%;
+    top: 65%;
+    transform: translate(-50%, -50%);
+    border-radius: 0;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); /* Reines Rechteck, wie in Skizze */
+    box-shadow: 0 0 20px #00ff00;
+    border: 2px solid #00cc00;
+    z-index: 10;
+}
+
+/* Der Planet */
+#planet {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle at 30% 30%, #4a148c, #880e4f, #d81b60);
+    border-radius: 50%;
+    left: 50%;
+    top: 15%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 35px rgba(216, 27, 96, 0.7);
+    z-index: 9;
+}
+
+/* Laser Geschützturm - jetzt ein Dreieck mit angepassten Maßen */
+.laser-turret {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent; /* Hälfte der Basisbreite */
+    border-right: 15px solid transparent; /* Andere Hälfte */
+    border-bottom: 25px solid #c0c0c0; /* Höhe des Dreiecks, zeigt NACH OBEN (Base ist unten) */
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
+    z-index: 12;
+    transition: border-bottom-color 0.3s, box-shadow 0.3s;
+}
+
+/* Aktiver Laser Geschützturm */
+.laser-turret.active {
+    border-bottom-color: #ff0000;
+    box-shadow: 0 0 10px #ff0000, 0 0 20px rgba(255, 0, 0, 0.7);
+}
+
+/* Laserstrahl */
+.laser-beam {
+    position: absolute;
+    height: 4px;
+    background-color: #ff0000;
+    transform-origin: 0 50%;
+    z-index: 11;
+    display: none;
+    box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+}
+
+.score-pulse {
+    position: absolute;
+    color: #00ff00;
+    font-size: 1.5em;
+    font-weight: bold;
+    opacity: 1;
+    animation: fadeOutUp 1s ease-out forwards;
+    z-index: 20;
+    text-shadow: 0 0 5px #00ff00;
+}
+
+@keyframes fadeOutUp {
+    from {
+        transform: translateY(0px) translateX(0px);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-50px) translateX(20px);
+        opacity: 0;
+    }
+}
+
+/* Anzeigeelemente oben links */
+#score-display,
+#laser-count-display,
+#laser-yield-display,
+#laser-speed-display {
+    position: absolute;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 1.1em; /* Etwas kleiner */
+    width: 150px; /* Breite angepasst */
+}
+
+#score-display { top: 10px; }
+#laser-count-display { top: 45px; } /* Angepasster Abstand */
+#laser-yield-display { top: 80px; } /* Angepasster Abstand */
+#laser-speed-display { top: 115px; } /* Angepasster Abstand */
+
+/* Buttons Container */
+#buttons-container {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: space-around; /* Verteilt Spalten gleichmäßig */
+    gap: 10px; /* Kleinerer Abstand zwischen Spalten */
+    width: 95%; /* Etwas breiter, um Buttons zu verteilen */
+    max-width: 380px; /* Max. Breite für den Container selbst */
+}
+
+.button-column {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Kleinerer Abstand zwischen Buttons in der Spalte */
+    flex-grow: 1;
+    flex-basis: 0; /* Erlaubt Buttons, den verfügbaren Platz aufzuteilen */
+    min-width: 120px; /* Mindestbreite für Buttons */
+}
+
+.game-button {
+    padding: 8px 10px; /* Kleinerer Padding */
+    background-color: #00ff00;
+    color: #0d0d2b;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em; /* Kleinerer Font */
+    font-weight: bold;
+    box-shadow: 0 0 10px #00ff00;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    width: 100%; /* Füllt die Breite der Spalte aus */
+    text-align: center; /* Text zentrieren */
+}
+
+.game-button:hover {
+    background-color: #00cc00;
+    box-shadow: 0 0 20px #00ff00;
+}
+
+.game-button:disabled {
+    background-color: #555;
+    box-shadow: none;
+    cursor: not-allowed;
+}

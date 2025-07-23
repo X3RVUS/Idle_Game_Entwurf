@@ -57,14 +57,13 @@ body {
 
 #storage-area {
     position: absolute;
-    /* Neue Positionierung oben links, unter den anderen Anzeigen */
-    top: calc(11.5 * var(--game-unit)); /* Angepasst, um unter storage-display zu passen */
-    left: calc(1 * var(--game-unit)); /* Gleicher Left-Wert wie die Anzeigen */
-    width: calc(25 * var(--game-unit)); /* Gleiche Breite wie die Anzeigen */
-    height: calc(1 * var(--game-unit)); /* Etwas schmaler */
+    top: calc(11.5 * var(--game-unit));
+    left: calc(1 * var(--game-unit));
+    width: calc(25 * var(--game-unit));
+    height: calc(1 * var(--game-unit));
     background-color: #333;
-    border: calc(0.5 * var(--game-unit)) solid #00cc00; /* Rand angepasst */
-    border-radius: calc(0.5 * var(--game-unit)); /* Weniger abgerundet, mehr wie eine Leiste */
+    border: calc(0.5 * var(--game-unit)) solid #00cc00;
+    border-radius: calc(0.5 * var(--game-unit));
     overflow: hidden;
 }
 
@@ -75,6 +74,39 @@ body {
     transition: width 0.1s linear;
 }
 
+/* NEU: Güter-Anzeige */
+#goods-display {
+    position: absolute;
+    left: calc(1 * var(--game-unit));
+    top: calc(13.5 * var(--game-unit)); /* Unter der Lager-Anzeige */
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: calc(0.5 * var(--game-unit)) calc(1 * var(--game-unit));
+    border-radius: calc(3 * var(--game-unit));
+    font-size: calc(1.5 * var(--game-unit));
+    width: calc(25 * var(--game-unit));
+    box-sizing: border-box;
+}
+
+#goods-area {
+    position: absolute;
+    top: calc(17 * var(--game-unit)); /* Unter der Güter-Anzeige */
+    left: calc(1 * var(--game-unit));
+    width: calc(25 * var(--game-unit));
+    height: calc(1 * var(--game-unit));
+    background-color: #333;
+    border: calc(0.5 * var(--game-unit)) solid #ffc107; /* Gelber Rand */
+    border-radius: calc(0.5 * var(--game-unit));
+    overflow: hidden;
+}
+
+#goods-fill {
+    height: 100%;
+    width: 0%;
+    background-color: #ffc107; /* Gelbe Füllung */
+    transition: width 0.1s linear;
+}
+
+
 .planet {
     position: absolute;
     width: calc(8 * var(--game-unit));
@@ -83,7 +115,6 @@ body {
     border-radius: 50%;
     box-shadow: 0 0 calc(15 * var(--game-unit)) rgba(216, 27, 96, 0.7);
     z-index: 9;
-    /* 1. Planetendrehung - nur auf den Planeten anwenden */
     animation: planetRotate 60s linear infinite;
 }
 
@@ -100,9 +131,8 @@ body {
     position: absolute;
     top: 50%;
     left: 50%;
-    /* 1. Wichtig: Anti-Rotation für die Zahlen */
-    transform: translate(-50%, -50%); /* Startposition */
-    animation: antiRotate 60s linear infinite; /* Gegenläufig zur Planeten-Rotation */
+    transform: translate(-50%, -50%);
+    animation: antiRotate 60s linear infinite;
     color: white;
     font-size: calc(1.5 * var(--game-unit));
     font-weight: bold;
@@ -130,20 +160,20 @@ body {
     z-index: 11;
 }
 
-.mining-progress-bar { /* .travel-progress-bar entfernt */
+.mining-progress-bar {
     position: absolute;
-    top: calc(1.5 * var(--game-unit)); /* Unter dem Collector-Dot */
-    left: calc(-1.25 * var(--game-unit)); /* Zentriert unter dem Dot */
+    top: calc(1.5 * var(--game-unit));
+    left: calc(-1.25 * var(--game-unit));
     width: calc(4 * var(--game-unit));
     height: calc(0.7 * var(--game-unit));
     background-color: rgba(0, 0, 0, 0.7);
     border: calc(0.5 * var(--game-unit)) solid #00cc00;
     border-radius: calc(1.5 * var(--game-unit));
     overflow: hidden;
-    display: none; /* Initial versteckt, Steuerung per JS */
+    display: none;
 }
 
-.mining-progress-fill { /* .travel-progress-fill entfernt */
+.mining-progress-fill {
     height: 100%;
     width: 0%;
     background-color: #00ff00;
@@ -158,6 +188,18 @@ body {
     animation: fadeOutUp 1s ease-out forwards;
     z-index: 20;
     text-shadow: 0 0 calc(2 * var(--game-unit)) #00ff00;
+}
+
+/* NEU: Pulse für Güter (gelb) */
+.goods-pulse {
+    position: absolute;
+    color: #ffc107; /* Gelb */
+    font-size: calc(2 * var(--game-unit));
+    font-weight: bold;
+    opacity: 1;
+    animation: fadeOutUp 1s ease-out forwards;
+    z-index: 20;
+    text-shadow: 0 0 calc(2 * var(--game-unit)) #ffc107;
 }
 
 @keyframes fadeOutUp {
@@ -181,12 +223,13 @@ body {
     border-radius: calc(3 * var(--game-unit));
     font-size: calc(1.5 * var(--game-unit));
     width: calc(25 * var(--game-unit));
-    box-sizing: border-box; /* Sicherstellen, dass Padding in der Breite enthalten ist */
+    box-sizing: border-box;
 }
 
 #score-display { top: calc(1 * var(--game-unit)); }
 #collector-count-display { top: calc(4.5 * var(--game-unit)); }
 #storage-display { top: calc(8 * var(--game-unit)); }
+
 
 #buttons-container {
     position: absolute;
@@ -222,7 +265,7 @@ body {
     width: 100%;
     text-align: center;
     box-sizing: border-box;
-    white-space: nowrap; /* Verhindert Zeilenumbrüche im Button-Text */
+    white-space: nowrap;
 }
 
 .game-button:hover {
@@ -270,7 +313,7 @@ body {
 }
 
 .factory {
-    position: relative; /* Wichtig für positionierung des Fortschrittbalkens */
+    position: relative;
     width: 100%;
     height: 100%;
     background-color: #007bff;
@@ -280,7 +323,7 @@ body {
     cursor: pointer;
     z-index: 12;
     display: flex;
-    flex-direction: column; /* Für Text und Balken */
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     color: white;
@@ -288,21 +331,21 @@ body {
     font-weight: bold;
     text-shadow: calc(0.5 * var(--game-unit)) calc(0.5 * var(--game-unit)) calc(1 * var(--game-unit)) rgba(0,0,0,0.5);
     box-sizing: border-box;
-    overflow: hidden; /* Sicherstellen, dass der Balken nicht überläuft */
+    overflow: hidden;
 }
 
 .factory::before {
     content: "Fabrik";
-    position: relative; /* Damit es über dem Balken liegt */
+    position: relative;
     z-index: 1;
 }
 
 .factory-progress-bar {
     position: absolute;
-    bottom: calc(0.5 * var(--game-unit)); /* Am unteren Rand der Fabrik */
+    bottom: calc(0.5 * var(--game-unit));
     left: 50%;
     transform: translateX(-50%);
-    width: 90%; /* Fast die volle Breite der Fabrik */
+    width: 90%;
     height: calc(1 * var(--game-unit));
     background-color: rgba(0, 0, 0, 0.5);
     border-radius: calc(0.5 * var(--game-unit));
@@ -312,7 +355,7 @@ body {
 .factory-progress-fill {
     height: 100%;
     width: 0%;
-    background-color: #33aaff; /* Blauer Balken */
+    background-color: #33aaff;
 }
 
 
@@ -323,11 +366,11 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); /* Halbdurchsichtiger Hintergrund */
+    background-color: rgba(0, 0, 0, 0.7);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 100; /* Über allem anderen */
+    z-index: 100;
 }
 
 .menu-content {
@@ -340,8 +383,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: calc(1.5 * var(--game-unit));
-    width: calc(50 * var(--game-unit)); /* Breite des Menüs */
-    max-width: 90%; /* Maximal 90% der Bildschirmbreite */
+    width: calc(50 * var(--game-unit));
+    max-width: 90%;
     box-sizing: border-box;
 }
 
@@ -364,7 +407,7 @@ body {
 .close-button {
     background-color: #ff3333;
     box-shadow: 0 0 calc(5 * var(--game-unit)) #ff3333;
-    margin-top: calc(1 * var(--game-unit)); /* Abstand zum oberen Button */
+    margin-top: calc(1 * var(--game-unit));
 }
 
 .close-button:hover {

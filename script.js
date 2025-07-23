@@ -3,14 +3,20 @@ import { CONFIG } from './config.js';
 
 // --- DOM-Elemente ---
 const gameContainer = document.getElementById('game-container');
-const planetsContainer = document.getElementById('planets-container'); // Für Planeten-Elemente
+const planetsContainer = document.getElementById('planets-container');
 const miningBase = document.getElementById('mining-base');
 const storageArea = document.getElementById('storage-area');
-let storageFill = null; // Initialisiere mit null, um sicherzustellen, dass es explizit zugewiesen wird
+let storageFill = null; // Initialisiere mit null
 
 const scoreDisplay = document.getElementById('score-display');
 const collectorCountDisplay = document.getElementById('collector-count-display');
 const storageDisplay = document.getElementById('storage-display');
+
+const goodsDisplay = document.getElementById('goods-display');
+const goodsArea = document.getElementById('goods-area');
+let goodsFill = null;
+const upgradeGoodsStorageButton = document.getElementById('upgrade-goods-storage-button');
+
 
 const buyCollectorButton = document.getElementById('buy-collector-button');
 const upgradeCollectorSpeedButton = document.getElementById('upgrade-collector-speed-button');
@@ -30,7 +36,6 @@ const closeBuildMenuButton = document.getElementById('close-build-menu-button');
 const factoryUpgradeMenu = document.getElementById('factory-upgrade-menu');
 const upgradeFactoryYieldButton = document.getElementById('upgrade-factory-yield-button');
 const upgradeFactorySpeedButton = document.getElementById('upgrade-factory-speed-button');
-// KORREKTUR: Syntaxfehler behoben
 const closeFactoryUpgradeMenuButton = document.getElementById('close-factory-upgrade-menu-button'); 
 const factoryUpgradeStatusDisplay = document.getElementById('factory-upgrade-status');
 
@@ -49,6 +54,11 @@ let collectorYieldUpgradeCost = CONFIG.Collectors.yieldUpgradeCost;
 let currentStorage = CONFIG.Game.initialStorage;
 let maxStorage = CONFIG.Game.initialMaxStorage;
 let storageUpgradeCost = CONFIG.Storage.upgradeCost;
+
+let currentGoods = CONFIG.Goods.initialGoods;
+let maxGoods = CONFIG.Goods.initialMaxGoods;
+let goodsUpgradeCost = CONFIG.Goods.upgradeCost;
+
 
 let gameUnitPx = 1;
 
@@ -107,25 +117,36 @@ function updateScore(amount) {
 function updateStorage(amount) {
     currentStorage = Math.min(maxStorage, currentStorage + amount);
     storageDisplay.textContent = `Lager: ${currentStorage} / ${maxStorage}`;
-    // Sicherstellen, dass storageFill existiert, bevor style.width geändert wird
-    if (storageFill) {
+    if (storageFill) { // Sicherstellen, dass das Element existiert
         storageFill.style.width = `${(currentStorage / maxStorage) * 100}%`;
     }
-    // Wichtig: Nach Lager-Update prüfen, ob Fabriken wieder produzieren können
     checkFactoryProduction();
     checkButtonStates();
 }
+
+function updateGoods(amount) {
+    currentGoods = Math.min(maxGoods, currentGoods + amount);
+    goodsDisplay.textContent = `Güter: ${currentGoods} / ${maxGoods}`;
+    if (goodsFill) { // Sicherstellen, dass das Element existiert
+        goodsFill.style.width = `${(currentGoods / maxGoods) * 100}%`;
+    }
+    checkButtonStates();
+}
+
 
 function checkButtonStates() {
     buyCollectorButton.disabled = score < buyCollectorCost || collectors.length >= CONFIG.Collectors.maxDocks;
     upgradeCollectorSpeedButton.disabled = score < collectorSpeedUpgradeCost;
     upgradeCollectorYieldButton.disabled = score < collectorYieldUpgradeCost;
     upgradeStorageButton.disabled = score < storageUpgradeCost;
+    upgradeGoodsStorageButton.disabled = score < goodsUpgradeCost;
+
 
     buyCollectorButton.textContent = `Neuer Sammler (Kosten: ${buyCollectorCost})`;
     upgradeCollectorSpeedButton.textContent = `Sammler Tempo (Kosten: ${collectorSpeedUpgradeCost})`;
     upgradeCollectorYieldButton.textContent = `Sammler Ertrag (Kosten: ${collectorYieldUpgradeCost})`;
     upgradeStorageButton.textContent = `Lager erweitern (Kosten: ${storageUpgradeCost})`;
+    upgradeGoodsStorageButton.textContent = `Güterlager erweitern (Kosten: ${goodsUpgradeCost})`;
 
     if (buildFactoryButton && currentFactorySlotIndex !== -1) {
         const hasFactoryInSlot = factories.some(f => f.slotIndex === currentFactorySlotIndex);
@@ -141,15 +162,16 @@ function checkButtonStates() {
     }
 }
 
-function showPlusAmount(amount, x_percent, y_percent) {
+function showPlusAmount(amount, x_percent, y_percent, type = 'score') {
     const pulse = document.createElement('div');
-    pulse.classList.add('score-pulse');
+    pulse.classList.add(type === 'score' ? 'score-pulse' : 'goods-pulse');
     pulse.textContent = `+${amount}`;
     pulse.style.left = `${x_percent}%`;
     pulse.style.top = `${y_percent}%`;
     gameContainer.appendChild(pulse);
     pulse.addEventListener('animationend', () => pulse.remove());
 }
+
 
 // --- Planeten ---
 function spawnPlanet() {
@@ -159,7 +181,8 @@ function spawnPlanet() {
     const x_percent = Math.random() * (100 - CONFIG.Planets.sizePercent) + CONFIG.Planets.sizePercent / 2;
     const y_min_percent = CONFIG.Planets.spawnAreaTopRelative * 100;
     const y_max_percent = CONFIG.Planets.spawnAreaBottomRelative * 100;
-    const y_percent = Math.random() * (y_max_percent - y_min_percent - CONFIG.Planets.sizePercent) + y_min_percent + CONFIG.Planets.sizePercent / 2;
+    // KORREKTUR: sizeSize zu sizePercent
+    const y_percent = Math.random() * (y_max_percent - y_min_percent - CONFIG.Planets.sizePercent) + y_min_percent + CONFIG.Planets.sizePercent / 2; 
 
 
     el.style.left = `${x_percent - CONFIG.Planets.sizePercent / 2}%`;
@@ -221,6 +244,7 @@ function addCollectorShip() {
 
     const baseCenter = getMiningBaseCenter();
 
+    // Sammler startet an der Mitte der Basis
     const collector = {
         element: collectorDotElement,
         miningProgressBar: miningProgressBar,
@@ -229,13 +253,11 @@ function addCollectorShip() {
         y_percent: baseCenter.y,
         vx: 0,
         vy: 0,
-        state: STATE_IDLE_NO_PLANETS,
+        state: STATE_IDLE_NO_PLANETS, // Startet im Idle-Zustand, um nach Planeten zu suchen
         targetPlanet: null,
         deliveryAmount: Math.round(collectorBaseYield * collectorYieldMultiplier),
         dockIndex: collectors.length,
-        miningStartTime: 0,
-        travelStartTime: 0,
-        travelDistance: 0
+        miningStartTime: 0
     };
     collectors.push(collector);
 
@@ -287,21 +309,20 @@ function buildFactory() {
         const newFactory = {
             element: factoryElement,
             slotIndex: currentFactorySlotIndex,
-            yield: CONFIG.Factories.baseYield,
+            yield: CONFIG.Factories.goodsYield,
             yieldMultiplier: 1,
             speedMultiplier: 1,
             duration: CONFIG.Factories.baseDurationMs,
             yieldUpgradeCost: CONFIG.Factories.initialYieldUpgradeCost,
             speedUpgradeCost: CONFIG.Factories.initialSpeedUpgradeCost,
-            productionInterval: null, // Wird erst gesetzt, wenn Produktion läuft
+            productionInterval: null,
             productionProgressFill: progressFill,
-            productionStartTime: 0 // Wird erst gesetzt, wenn Produktion tatsächlich startet
+            productionStartTime: 0
         };
         factories.push(newFactory);
 
         factoryElement.addEventListener('click', () => showFactoryUpgradeMenu(newFactory));
 
-        // Fabrik soll sofort produktiv gehen, wenn Ressourcen da sind
         startFactoryProduction(newFactory);
         checkButtonStates();
     } else {
@@ -310,52 +331,54 @@ function buildFactory() {
 }
 
 function startFactoryProduction(factory) {
-    // Wenn bereits ein Intervall läuft, stoppe es, um es neu zu setzen
     if (factory.productionInterval) {
         clearInterval(factory.productionInterval);
-        factory.productionInterval = null; // Zurücksetzen, um erneuten Start zu ermöglichen
+        factory.productionInterval = null;
     }
 
-    // Nur starten, wenn genügend Ressourcen vorhanden sind
-    if (currentStorage >= CONFIG.Factories.storageConsumption) {
-        factory.productionStartTime = Date.now(); // Startzeit setzen/aktualisieren
+    if (currentStorage >= CONFIG.Factories.storageConsumption &&
+        currentGoods + (factory.yield * factory.yieldMultiplier) <= maxGoods) {
+        
+        factory.productionStartTime = Date.now();
         const currentProductionDuration = factory.duration / factory.speedMultiplier;
 
         factory.productionInterval = setInterval(() => {
-            if (currentStorage >= CONFIG.Factories.storageConsumption) {
+            if (currentStorage >= CONFIG.Factories.storageConsumption &&
+                currentGoods + (factory.yield * factory.yieldMultiplier) <= maxGoods) {
+                
                 updateStorage(-CONFIG.Factories.storageConsumption);
-                const generatedScore = Math.round(factory.yield * factory.yieldMultiplier);
-                updateScore(generatedScore);
+                const generatedGoods = Math.round(factory.yield * factory.yieldMultiplier);
+                updateGoods(generatedGoods);
                 const factoryRect = factory.element.getBoundingClientRect();
                 const containerRect = gameContainer.getBoundingClientRect();
-                showPlusAmount(generatedScore,
+                showPlusAmount(generatedGoods,
                     ((factoryRect.left + factoryRect.width / 2) - containerRect.left) / containerRect.width * 100,
-                    ((factoryRect.top - (5 * gameUnitPx)) - containerRect.top) / containerRect.height * 100
+                    ((factoryRect.top - (5 * gameUnitPx)) - containerRect.top) / containerRect.height * 100,
+                    'goods'
                 );
-                factory.productionStartTime = Date.now(); // Fortschrittsbalken resetten
+                factory.productionStartTime = Date.now();
             } else {
-                // Wenn Lager während der Produktion leer wird, Produktion pausieren
                 clearInterval(factory.productionInterval);
-                factory.productionInterval = null; // Intervall löschen
-                factory.productionProgressFill.style.width = '0%'; // Balken leeren
-                console.log(`Fabrik im Slot ${factory.slotIndex}: Lager leer, Produktion pausiert.`);
+                factory.productionInterval = null;
+                factory.productionProgressFill.style.width = '0%';
+                console.log(`Fabrik im Slot ${factory.slotIndex}: Produktion pausiert (Ressourcen oder Güterlager voll).`);
+                checkFactoryProduction();
             }
         }, currentProductionDuration);
         console.log(`Fabrikproduktion für Slot ${factory.slotIndex} gestartet für ${currentProductionDuration}ms.`);
     } else {
-        // Wenn nicht genügend Ressourcen da sind, Balken leeren und sicherstellen, dass kein Intervall läuft
         factory.productionProgressFill.style.width = '0%';
-        console.log(`Fabrik im Slot ${factory.slotIndex}: Nicht genügend Ressourcen zum Starten der Produktion.`);
+        console.log(`Fabrik im Slot ${factory.slotIndex}: Nicht genügend Ressourcen oder Güterlager voll zum Starten der Produktion.`);
     }
 }
 
 
-// Funktion, die im Game-Loop und bei Storage-Updates aufgerufen wird
 function checkFactoryProduction() {
     factories.forEach(factory => {
-        // Nur wenn die Fabrik NICHT bereits produziert
-        if (!factory.productionInterval && currentStorage >= CONFIG.Factories.storageConsumption) {
-            startFactoryProduction(factory); // Versuche, Produktion wieder aufzunehmen
+        if (!factory.productionInterval &&
+            currentStorage >= CONFIG.Factories.storageConsumption &&
+            currentGoods + (factory.yield * factory.yieldMultiplier) <= maxGoods) {
+            startFactoryProduction(factory);
         }
     });
 }
@@ -375,7 +398,7 @@ function hideFactoryUpgradeMenu() {
 
 function updateFactoryUpgradeMenuDisplay() {
     if (currentSelectedFactory) {
-        const yieldText = `Ertrag: ${currentSelectedFactory.yield * currentSelectedFactory.yieldMultiplier} Score`;
+        const yieldText = `Ertrag: ${currentSelectedFactory.yield * currentSelectedFactory.yieldMultiplier} Güter`;
         const speedText = `Tempo: ${Math.round(currentSelectedFactory.duration / currentSelectedFactory.speedMultiplier / 1000 * 10) / 10}s`;
         factoryUpgradeStatusDisplay.textContent = `${yieldText}, ${speedText}`;
     }
@@ -396,7 +419,7 @@ function upgradeFactorySpeed() {
         updateScore(-currentSelectedFactory.speedUpgradeCost);
         currentSelectedFactory.speedMultiplier = Math.round((currentSelectedFactory.speedMultiplier + CONFIG.Factories.speedUpgradeIncrease) * 10) / 10;
         currentSelectedFactory.speedUpgradeCost = Math.ceil(currentSelectedFactory.speedUpgradeCost * CONFIG.Factories.speedUpgradeCostMultiplier);
-        startFactoryProduction(currentSelectedFactory); // Produktion neu starten mit neuem Tempo
+        startFactoryProduction(currentSelectedFactory);
         updateFactoryUpgradeMenuDisplay();
         checkButtonStates();
     }
@@ -439,10 +462,21 @@ function upgradeStorage() {
         storageUpgradeCost = Math.ceil(storageUpgradeCost * CONFIG.Storage.upgradeCostMultiplier);
         storageDisplay.textContent = `Lager: ${currentStorage} / ${maxStorage}`;
     }
-    // Nach Lager-Update checkFactoryProduction aufrufen, da sich Ressourcen geändert haben könnten
     checkFactoryProduction();
     checkButtonStates();
 }
+
+function upgradeGoodsStorage() {
+    if (score >= goodsUpgradeCost) {
+        updateScore(-goodsUpgradeCost);
+        maxGoods = Math.round(maxGoods * CONFIG.Goods.upgradeCapacityMultiplier);
+        goodsUpgradeCost = Math.ceil(goodsUpgradeCost * CONFIG.Goods.upgradeCostMultiplier);
+        goodsDisplay.textContent = `Güter: ${currentGoods} / ${maxGoods}`;
+    }
+    checkFactoryProduction();
+    checkButtonStates();
+}
+
 
 // --- Zoom-Funktionalität ---
 function handleZoom(event) {
@@ -466,15 +500,13 @@ function gameLoop() {
     collectors.forEach(collector => {
         const currentSpeed = collectorBaseSpeed;
 
-        // Standardmäßig alle Balken ausblenden, außer sie werden explizit gesetzt
         collector.miningProgressBar.style.display = 'none';
 
         if (collector.state === STATE_RETURNING_TO_SOURCE) {
-            // Keine Ladebalkenanzeige während der Reise
             if (!collector.targetPlanet || collector.targetPlanet.resources <= 0) {
                 collector.targetPlanet = getNextAvailablePlanet();
                 if (!collector.targetPlanet) {
-                    collector.state = STATE_IDLE_NO_PLANETS;
+                    collector.state = STATE_IDLE_NO_PLANETS; // Wenn kein Planet, geh in Idle
                     return;
                 }
             }
@@ -496,14 +528,14 @@ function gameLoop() {
             if (distancePx < planetRenderedRadius + collectorRenderedRadius + (2 * gameUnitPx)) {
                 collector.state = STATE_MINING;
                 collector.miningStartTime = Date.now();
-                collector.miningProgressBar.style.display = 'block'; // Jetzt anzeigen!
+                collector.miningProgressBar.style.display = 'block';
             } else {
                 collector.x_percent += (dx / distance) * currentSpeed;
                 collector.y_percent += (dy / distance) * currentSpeed;
             }
 
         } else if (collector.state === STATE_MINING) {
-            collector.miningProgressBar.style.display = 'block'; // Mining-Balken anzeigen
+            collector.miningProgressBar.style.display = 'block';
 
             const elapsedTime = Date.now() - collector.miningStartTime;
             const progress = Math.min(1, elapsedTime / CONFIG.Collectors.miningDurationMs);
@@ -520,7 +552,7 @@ function gameLoop() {
                     }
                 }
                 collector.state = STATE_RETURNING_TO_BASE;
-                collector.miningProgressBar.style.display = 'none'; // Mining-Balken ausblenden
+                collector.miningProgressBar.style.display = 'none';
             }
             if (collector.targetPlanet) {
                 collector.x_percent = collector.targetPlanet.x_percent - (CONFIG.Collectors.sizePercent / 2);
@@ -530,7 +562,6 @@ function gameLoop() {
             }
 
         } else if (collector.state === STATE_RETURNING_TO_BASE) {
-            // Keine Ladebalkenanzeige während der Rückreise
             const baseCenter = getMiningBaseCenter();
             const dockPosX_percent = baseCenter.x;
             const dockPosY_percent = baseCenter.y;
@@ -555,7 +586,6 @@ function gameLoop() {
             }
 
         } else if (collector.state === STATE_DELIVERING) {
-            // Keine Ladebalkenanzeige während der Lieferung
             const amountToDeliver = collector.deliveryAmount;
             const baseCenter = getMiningBaseCenter();
 
@@ -570,13 +600,17 @@ function gameLoop() {
                 // Lager voll, Sammler wartet am Dock
             }
         } else if (collector.state === STATE_IDLE_NO_PLANETS) {
-            // Keine Ladebalkenanzeige im Idle-Zustand
+            // Im Idle-Zustand soll der Sammler aktiv nach Planeten suchen
             if (!collector.targetPlanet || collector.targetPlanet.resources <= 0) {
                 collector.targetPlanet = getNextAvailablePlanet();
                 if (collector.targetPlanet) {
-                    collector.state = STATE_RETURNING_TO_SOURCE;
+                    collector.state = STATE_RETURNING_TO_SOURCE; // Wechsel zu Reise-Status, wenn Planet gefunden
                 }
             }
+            // Bleibe an der Basis positioniert, wenn im Idle-Zustand
+            const baseCenter = getMiningBaseCenter();
+            collector.x_percent = baseCenter.x;
+            collector.y_percent = baseCenter.y;
         }
 
         collector.element.style.left = `${collector.x_percent - (CONFIG.Collectors.sizePercent / 2)}%`;
@@ -584,14 +618,12 @@ function gameLoop() {
     });
 
     factories.forEach(factory => {
-        // Nur Balken aktualisieren, wenn die Fabrik aktiv produziert (productionInterval gesetzt ist)
         if (factory.productionInterval && factory.productionProgressFill) {
             const elapsedTime = Date.now() - factory.productionStartTime;
             const currentProductionDuration = factory.duration / factory.speedMultiplier;
             const progress = Math.min(1, elapsedTime / currentProductionDuration);
             factory.productionProgressFill.style.width = `${progress * 100}%`;
         } else if (factory.productionProgressFill) {
-            // Wenn keine Produktion läuft, Balken auf 0% setzen
             factory.productionProgressFill.style.width = '0%';
         }
     });
@@ -601,10 +633,13 @@ function gameLoop() {
 }
 
 // --- Initialisierung beim Laden der Seite ---
+
+// Event Listener für Buttons
 buyCollectorButton.addEventListener('click', buyCollector);
 upgradeCollectorSpeedButton.addEventListener('click', upgradeCollectorSpeed);
 upgradeCollectorYieldButton.addEventListener('click', upgradeCollectorYield);
 upgradeStorageButton.addEventListener('click', upgradeStorage);
+upgradeGoodsStorageButton.addEventListener('click', upgradeGoodsStorage);
 
 buildFactoryButton.addEventListener('click', buildFactory);
 closeBuildMenuButton.addEventListener('click', hideBuildMenu);
@@ -612,31 +647,29 @@ closeFactoryUpgradeMenuButton.addEventListener('click', hideFactoryUpgradeMenu);
 upgradeFactoryYieldButton.addEventListener('click', upgradeFactoryYield);
 upgradeFactorySpeedButton.addEventListener('click', upgradeFactorySpeed);
 
-
 window.addEventListener('resize', updateGameUnit);
 
-window.onload = () => {
+// Sicherstellen, dass das DOM geladen ist, bevor auf Elemente zugegriffen wird
+document.addEventListener('DOMContentLoaded', () => {
     updateGameUnit(); // Setzt die initiale gameUnit
 
-    // Statt ein neues Element zu erstellen, das vorhandene im HTML nehmen
-    if (storageArea) {
-        storageFill = document.getElementById('storage-fill');
-    } else {
-        console.error("Element mit ID 'storage-area' nicht gefunden bei Initialisierung.");
-    }
+    // KORREKTUR: storageFill und goodsFill sicher initialisieren
+    storageFill = document.getElementById('storage-fill');
+    goodsFill = document.getElementById('goods-fill');
 
     initializePlanets();
     for (let i = 0; i < CONFIG.Collectors.initialCount; i++) {
         addCollectorShip();
     }
-
-    // Wichtig: updateStorage MUSS NACHDEM storageFill an den DOM angehängt wurde aufgerufen werden.
-    updateStorage(CONFIG.Game.initialStorage);
-
+    
+    // updateStorage und updateGoods aufrufen, um die Anzeigen korrekt zu initialisieren
+    updateStorage(CONFIG.Game.initialStorage); 
+    updateGoods(CONFIG.Goods.initialGoods); 
+    
     initializeFactoryPlots();
     checkButtonStates();
 
-    gameContainer.addEventListener('wheel', handleZoom);
+    gameContainer.addEventListener('wheel', handleZoom); // Korrigiert: handleGameUnit zu handleZoom
 
     requestAnimationFrame(gameLoop);
-};
+});

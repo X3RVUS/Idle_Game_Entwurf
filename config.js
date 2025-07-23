@@ -1,7 +1,7 @@
 export const CONFIG = {
     // Globale Spieleinstellungen
     Game: {
-        initialScore: 1000,
+        initialScore: 1000, // Für schnelleres Testen der Fabriken
         initialStorage: 0,
         initialMaxStorage: 100,
         gameUnitMinScale: 0.5, // Min-Skalierung der Game-Unit in Pixeln pro VMin (z.B. 0.5px pro 1vmin)
@@ -43,9 +43,18 @@ export const CONFIG = {
         yieldUpgradeIncrease: 0.5, // Erhöhung des Ertrags pro Upgrade
     },
 
-    // Lager-Einstellungen
+    // Lager-Einstellungen (Ressourcen)
     Storage: {
         upgradeCost: 50,
+        upgradeCostMultiplier: 2,
+        upgradeCapacityMultiplier: 1.5, // Faktor zur Erhöhung der Kapazität
+    },
+
+    // Güter-Einstellungen
+    Goods: {
+        initialGoods: 0,
+        initialMaxGoods: 50, // Initiales Max-Lager für Güter
+        upgradeCost: 75, // Kosten für Güterlager-Upgrade
         upgradeCostMultiplier: 2,
         upgradeCapacityMultiplier: 1.5, // Faktor zur Erhöhung der Kapazität
     },
@@ -54,14 +63,14 @@ export const CONFIG = {
     Factories: {
         maxSlots: 8, // Max 8 Fabrik-Slots
         buildCost: 10, // Score-Kosten für eine Fabrik
-        storageConsumption: 5, // Ressourcenverbrauch pro Produktion auf 5 geändert
-        baseYield: 5, // Basis-Score-Ertrag pro Produktion auf 5 geändert
+        storageConsumption: 5, // Ressourcenverbrauch pro Produktion
+        goodsYield: 5, // NEU: Güter-Ertrag pro Produktion
         baseDurationMs: 5000, // Basis-Produktionszeit in ms
 
-        // Individuelle Upgrade-Kosten und -Werte pro Fabrik-Instanz
+        // Individuelle Upgrade-Kosten und -Werte pro Fabrik-Instanz (betreffen nun Güterertrag)
         initialYieldUpgradeCost: 10,
         yieldUpgradeCostMultiplier: 1.8,
-        yieldUpgradeIncrease: 0.2, // Erhöhung des Ertrags-Multiplikators pro Upgrade
+        yieldUpgradeIncrease: 1, // Erhöhung des Güter-Ertrags pro Upgrade
 
         initialSpeedUpgradeCost: 20,
         speedUpgradeCostMultiplier: 2,

@@ -13,6 +13,19 @@ const upgradeCollectorSpeedButton = document.getElementById('upgrade-collector-s
 const upgradeStorageButton = document.getElementById('upgrade-storage-button');
 const upgradeCollectorYieldButton = document.getElementById('upgrade-collector-yield-button');
 
+// Fabrik-bezogene DOM-Elemente
+const factoryPlot = document.getElementById('factory-plot');
+const buildMenu = document.getElementById('build-menu');
+const buildFactoryButton = document.getElementById('build-factory-button');
+const closeBuildMenuButton = document.getElementById('close-build-menu-button');
+
+const factoryUpgradeMenu = document.getElementById('factory-upgrade-menu');
+const upgradeFactoryYieldButton = document.getElementById('upgrade-factory-yield-button');
+const upgradeFactorySpeedButton = document.getElementById('upgrade-factory-speed-button');
+const closeFactoryUpgradeMenuButton = document.getElementById('close-factory-upgrade-menu-button');
+const factoryUpgradeStatusDisplay = document.getElementById('factory-upgrade-status');
+
+
 // --- Variablen ---
 let score = 0;
 let collectors = [];
@@ -49,6 +62,21 @@ const DOCK_OFFSET_Y_PERCENT = 1; // Y-Offset von der Oberkante des Raumschiffs f
 const COLLECTOR_SIZE_PERCENT = 1.5; // Größe des Sammler-Punktes in % der game-unit
 const MAX_COLLECTOR_DOCKS = 5;
 
+
+// Fabrik-Variablen
+let factories = [];
+const BUILD_FACTORY_COST = 10; // Score-Kosten für eine Fabrik
+const FACTORY_STORAGE_CONSUMPTION = 10; // Ressourcenverbrauch pro Produktion
+const FACTORY_BASE_YIELD = 5; // Basis-Score-Ertrag
+let FACTORY_YIELD_MULTIPLIER = 1; // Multiplikator für Ertrag
+const FACTORY_BASE_DURATION = 5000; // Basis-Produktionszeit in ms
+let FACTORY_SPEED_MULTIPLIER = 1; // Multiplikator für Geschwindigkeit (kleiner = schneller)
+
+let FACTORY_YIELD_UPGRADE_COST = 10;
+let FACTORY_SPEED_UPGRADE_COST = 20;
+
+let currentSelectedFactory = null; // Für das Upgrade-Menü
+
 // --- Helper-Funktionen ---
 
 // Berechnet und setzt die CSS-Variable --game-unit basierend auf der kleineren Dimension des Containers
@@ -58,11 +86,6 @@ function updateGameUnit() {
     gameUnitPx = Math.max(1, minDim / 100); // 100, da 1vmin = 1% der kleineren Dimension
     document.documentElement.style.setProperty('--game-unit', `${gameUnitPx}px`);
 }
-
-// Konvertiert eine Prozentzahl (basierend auf der REFERENCE_WIDTH/HEIGHT) in eine Position in % des Containers
-// Dies ist nicht mehr direkt notwendig, da wir direkt mit % arbeiten können
-// Aber für die initiale Positionierung der Planeten und Sammler ist es gut, über eine Referenz zu arbeiten
-// und dann in % umzurechnen.
 
 function getMiningBaseCenter() {
     const rect = miningBase.getBoundingClientRect();
@@ -109,6 +132,19 @@ function checkButtonStates() {
     upgradeCollectorSpeedButton.textContent = `Sammler Tempo (Kosten: ${collectorSpeedUpgradeCost})`;
     upgradeCollectorYieldButton.textContent = `Sammler Ertrag (Kosten: ${collectorYieldUpgradeCost})`;
     upgradeStorageButton.textContent = `Lager erweitern (Kosten: ${storageUpgradeCost})`;
+
+    // Fabrik-bezogene Buttons
+    if (buildFactoryButton) { // Überprüfen, ob der Button existiert (ist ja dynamisch)
+        buildFactoryButton.disabled = score < BUILD_FACTORY_COST || factories.length > 0; // Nur eine Fabrik vorerst
+        buildFactoryButton.textContent = `Fabrik bauen (Kosten: ${BUILD_FACTORY_COST} Score)`;
+    }
+
+    if (currentSelectedFactory) {
+        upgradeFactoryYieldButton.disabled = score < currentSelectedFactory.yieldUpgradeCost;
+        upgradeFactorySpeedButton.disabled = score < currentSelectedFactory.speedUpgradeCost;
+        upgradeFactoryYieldButton.textContent = `Ertrag upgraden (Kosten: ${currentSelectedFactory.yieldUpgradeCost} Score)`;
+        upgradeFactorySpeedButton.textContent = `Tempo upgraden (Kosten: ${currentSelectedFactory.speedUpgradeCost} Score)`;
+    }
 }
 
 function showPlusAmount(amount, x_percent, y_percent) {
@@ -215,6 +251,122 @@ function addCollectorShip() {
     collectorCountDisplay.textContent = `Sammler: ${collectors.length}`;
 }
 
+// --- Fabrik Logik ---
+
+function showBuildMenu() {
+    buildMenu.classList.remove('hidden');
+    checkButtonStates(); // Zustände der Buttons aktualisieren
+}
+
+function hideBuildMenu() {
+    buildMenu.classList.add('hidden');
+}
+
+function buildFactory() {
+    if (score >= BUILD_FACTORY_COST && factories.length === 0) { // Nur eine Fabrik vorerst
+        updateScore(-BUILD_FACTORY_COST);
+        hideBuildMenu();
+
+        // Ersetze den Bauplatz durch die Fabrik
+        const factoryElement = document.createElement('div');
+        factoryElement.classList.add('factory');
+        // Positionierung bleibt gleich wie beim Bauplatz, da es ihn ersetzt
+        factoryElement.style.top = factoryPlot.style.top;
+        factoryElement.style.left = factoryPlot.style.left;
+        factoryElement.style.transform = factoryPlot.style.transform; // Übernimmt auch den Transform vom Bauplatz
+
+        miningBase.replaceChild(factoryElement, factoryPlot); // Ersetzt den Bauplatz
+
+        const newFactory = {
+            element: factoryElement,
+            yield: FACTORY_BASE_YIELD,
+            yieldMultiplier: FACTORY_YIELD_MULTIPLIER,
+            speedMultiplier: FACTORY_SPEED_MULTIPLIER,
+            duration: FACTORY_BASE_DURATION,
+            yieldUpgradeCost: FACTORY_YIELD_UPGRADE_COST,
+            speedUpgradeCost: FACTORY_SPEED_UPGRADE_COST,
+            productionInterval: null // Wird später gesetzt
+        };
+        factories.push(newFactory);
+
+        factoryElement.addEventListener('click', () => showFactoryUpgradeMenu(newFactory));
+
+        startFactoryProduction(newFactory);
+        checkButtonStates();
+    } else {
+        // Fehler-Feedback, z.B. "Nicht genug Score" oder "Schon eine Fabrik gebaut"
+    }
+}
+
+function startFactoryProduction(factory) {
+    if (factory.productionInterval) {
+        clearInterval(factory.productionInterval); // Bestehendes Intervall löschen bei Upgrade
+    }
+
+    const currentProductionDuration = factory.duration / factory.speedMultiplier;
+    factory.productionInterval = setInterval(() => {
+        if (currentStorage >= FACTORY_STORAGE_CONSUMPTION) {
+            updateStorage(-FACTORY_STORAGE_CONSUMPTION);
+            const generatedScore = Math.round(factory.yield * factory.yieldMultiplier);
+            updateScore(generatedScore);
+            const factoryRect = factory.element.getBoundingClientRect();
+            const containerRect = gameContainer.getBoundingClientRect();
+            // Position des Popups oberhalb der Fabrik (in %)
+            showPlusAmount(generatedScore,
+                ((factoryRect.left + factoryRect.width / 2) - containerRect.left) / containerRect.width * 100,
+                ((factoryRect.top - (5 * gameUnitPx)) - containerRect.top) / containerRect.height * 100
+            );
+        } else {
+            // Optional: Visuelles Feedback, dass Lager leer ist
+            console.log("Fabrik: Lager leer, Produktion gestoppt.");
+        }
+    }, currentProductionDuration);
+    console.log(`Fabrikproduktion gestartet für ${currentProductionDuration}ms.`);
+}
+
+function showFactoryUpgradeMenu(factory) {
+    currentSelectedFactory = factory; // Die angeklickte Fabrik merken
+    factoryUpgradeMenu.classList.remove('hidden');
+    updateFactoryUpgradeMenuDisplay();
+    checkButtonStates();
+}
+
+function hideFactoryUpgradeMenu() {
+    factoryUpgradeMenu.classList.add('hidden');
+    currentSelectedFactory = null;
+}
+
+function updateFactoryUpgradeMenuDisplay() {
+    if (currentSelectedFactory) {
+        const yieldText = `Ertrag: ${currentSelectedFactory.yield * currentSelectedFactory.yieldMultiplier} Score`;
+        const speedText = `Tempo: ${Math.round(currentSelectedFactory.duration / currentSelectedFactory.speedMultiplier / 1000 * 10) / 10}s`;
+        factoryUpgradeStatusDisplay.textContent = `${yieldText}, ${speedText}`;
+    }
+}
+
+function upgradeFactoryYield() {
+    if (currentSelectedFactory && score >= currentSelectedFactory.yieldUpgradeCost) {
+        updateScore(-currentSelectedFactory.yieldUpgradeCost);
+        currentSelectedFactory.yieldMultiplier = Math.round((currentSelectedFactory.yieldMultiplier + 0.2) * 10) / 10;
+        currentSelectedFactory.yieldUpgradeCost = Math.ceil(currentSelectedFactory.yieldUpgradeCost * 1.8);
+        updateFactoryUpgradeMenuDisplay();
+        checkButtonStates();
+    }
+}
+
+function upgradeFactorySpeed() {
+    if (currentSelectedFactory && score >= currentSelectedFactory.speedUpgradeCost) {
+        updateScore(-currentSelectedFactory.speedUpgradeCost);
+        currentSelectedFactory.speedMultiplier = Math.round((currentSelectedFactory.speedMultiplier + 0.1) * 10) / 10;
+        currentSelectedFactory.speedUpgradeCost = Math.ceil(currentSelectedFactory.speedUpgradeCost * 2);
+        // Produktion neu starten, um das neue Intervall zu übernehmen
+        startFactoryProduction(currentSelectedFactory);
+        updateFactoryUpgradeMenuDisplay();
+        checkButtonStates();
+    }
+}
+
+
 // --- Button-Funktionen ---
 function buyCollector() {
     if (score >= buyCollectorCost) {
@@ -259,13 +411,11 @@ function handleZoom(event) {
     event.preventDefault();
 
     const zoomFactor = event.deltaY > 0 ? (1 - 0.05) : (1 + 0.05); // 5% Zoom-Schritt
-    // gameUnitPx direkt anpassen
-    const newGameUnitPx = Math.max(0.5, Math.min(2.0, gameUnitPx / window.innerHeight * 100 * zoomFactor)); // Skaliert um Faktor
-    // Sicherstellen, dass die gameUnitPx innerhalb vernünftiger Grenzen bleibt
-    // Hier können wir einen Min/Max-Wert für die gameUnitPx direkt definieren
-    const minGameUnit = Math.min(gameContainer.offsetWidth, gameContainer.offsetHeight) / 150; // Z.B. min 1% von 1/1.5 der Containergröße
-    const maxGameUnit = Math.min(gameContainer.offsetWidth, gameContainer.offsetHeight) / 50; // Z.B. max 1% von 2 der Containergröße
-    gameUnitPx = Math.max(minGameUnit, Math.min(maxGameUnit, newGameUnitPx));
+    const minGameUnitVal = Math.min(gameContainer.offsetWidth, gameContainer.offsetHeight) / 200; // Z.B. min 0.5% von 100vmin
+    const maxGameUnitVal = Math.min(gameContainer.offsetWidth, gameContainer.offsetHeight) / 20; // Z.B. max 5% von 100vmin
+    
+    // gameUnitPx direkt anpassen, mit Begrenzungen
+    gameUnitPx = Math.max(minGameUnitVal, Math.min(maxGameUnitVal, gameUnitPx * zoomFactor));
 
     updateGameUnit(); // Aktualisiert die CSS-Variable
 }
@@ -312,7 +462,7 @@ function gameLoop() {
                 collector.x_percent += (dx / distance) * currentSpeed;
                 collector.y_percent += (dy / distance) * currentSpeed;
             }
-            collector.progressBar.style.display = 'none';
+            // collector.progressBar.style.display = 'none'; // Wird erst im Mining-State angezeigt
 
         } else if (collector.state === STATE_MINING) {
             const elapsedTime = Date.now() - collector.miningStartTime;
@@ -386,7 +536,14 @@ function gameLoop() {
             }
             collector.progressBar.style.display = 'none';
         } else if (collector.state === STATE_IDLE_NO_PLANETS) {
+            // Sammler ist untätig, sucht weiter nach Planeten
             collector.progressBar.style.display = 'none';
+            if (!collector.targetPlanet || collector.targetPlanet.resources <= 0) {
+                collector.targetPlanet = getNextAvailablePlanet();
+                if (collector.targetPlanet) {
+                    collector.state = STATE_RETURNING_TO_SOURCE;
+                }
+            }
         }
 
         // Aktualisiere die Position des Sammler-Elements in PROZENT für CSS
@@ -402,6 +559,15 @@ buyCollectorButton.addEventListener('click', buyCollector);
 upgradeCollectorSpeedButton.addEventListener('click', upgradeCollectorSpeed);
 upgradeCollectorYieldButton.addEventListener('click', upgradeCollectorYield);
 upgradeStorageButton.addEventListener('click', upgradeStorage);
+
+// Event Listener für Fabrik-Funktionen
+factoryPlot.addEventListener('click', showBuildMenu);
+buildFactoryButton.addEventListener('click', buildFactory);
+closeBuildMenuButton.addEventListener('click', hideBuildMenu);
+closeFactoryUpgradeMenuButton.addEventListener('click', hideFactoryUpgradeMenu);
+upgradeFactoryYieldButton.addEventListener('click', upgradeFactoryYield);
+upgradeFactorySpeedButton.addEventListener('click', upgradeFactorySpeed);
+
 
 storageFill = document.createElement('div');
 storageFill.id = 'storage-fill';

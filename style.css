@@ -38,6 +38,9 @@ body {
     box-shadow: 0 0 calc(10 * var(--game-unit)) #00ff00;
     border: calc(1 * var(--game-unit)) solid #00cc00;
     z-index: 10;
+    display: flex; /* Für die Ausrichtung von Bauplätzen */
+    justify-content: center;
+    align-items: center;
 }
 
 #storage-area {
@@ -197,4 +200,117 @@ body {
     background-color: #555;
     box-shadow: none;
     cursor: not-allowed;
+}
+
+/* --- Fabrik-bezogene Stile --- */
+#factory-plot {
+    position: absolute;
+    width: calc(8 * var(--game-unit));
+    height: calc(8 * var(--game-unit));
+    border: calc(0.5 * var(--game-unit)) dashed #007bff;
+    background-color: rgba(0, 123, 255, 0.1); /* Leicht blauer Hintergrund */
+    top: 20%; /* Position innerhalb der Mining-Base */
+    left: 50%;
+    transform: translateX(-50%);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: calc(1.2 * var(--game-unit));
+    color: #007bff;
+    text-align: center;
+    border-radius: calc(1 * var(--game-unit));
+    box-sizing: border-box; /* Sicherstellen, dass Padding/Border in der Größe enthalten ist */
+}
+
+#factory-plot::before {
+    content: "Bauplatz";
+}
+
+
+.factory {
+    position: absolute;
+    width: calc(8 * var(--game-unit));
+    height: calc(8 * var(--game-unit));
+    background-color: #007bff; /* Gefüllte blaue Box */
+    border: calc(0.5 * var(--game-unit)) solid #0056b3;
+    border-radius: calc(1 * var(--game-unit));
+    box-shadow: 0 0 calc(8 * var(--game-unit)) rgba(0, 123, 255, 0.7);
+    cursor: pointer;
+    z-index: 12;
+    top: 20%; /* Gleiche Position wie Bauplatz */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: calc(1.5 * var(--game-unit));
+    font-weight: bold;
+    text-shadow: calc(0.5 * var(--game-unit)) calc(0.5 * var(--game-unit)) calc(1 * var(--game-unit)) rgba(0,0,0,0.5);
+    box-sizing: border-box;
+}
+
+.factory::before {
+    content: "Fabrik";
+}
+
+/* --- Menü-Overlays --- */
+.menu-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Halbdurchsichtiger Hintergrund */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100; /* Über allem anderen */
+}
+
+.menu-content {
+    background-color: #1a1a3a;
+    border: calc(0.5 * var(--game-unit)) solid #00ff00;
+    border-radius: calc(1.5 * var(--game-unit));
+    padding: calc(2 * var(--game-unit));
+    box-shadow: 0 0 calc(20 * var(--game-unit)) rgba(0, 255, 0, 0.4);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: calc(1.5 * var(--game-unit));
+    width: calc(50 * var(--game-unit)); /* Breite des Menüs */
+    max-width: 90%; /* Maximal 90% der Bildschirmbreite */
+    box-sizing: border-box;
+}
+
+.menu-content h3 {
+    margin-top: 0;
+    color: #00ff00;
+    font-size: calc(2 * var(--game-unit));
+}
+
+.menu-content p {
+    font-size: calc(1.3 * var(--game-unit));
+    margin-bottom: calc(1.5 * var(--game-unit));
+}
+
+.menu-content .game-button {
+    font-size: calc(1.2 * var(--game-unit));
+    padding: calc(0.7 * var(--game-unit)) calc(1.5 * var(--game-unit));
+}
+
+.close-button {
+    background-color: #ff3333;
+    box-shadow: 0 0 calc(5 * var(--game-unit)) #ff3333;
+    margin-top: calc(1 * var(--game-unit)); /* Abstand zum oberen Button */
+}
+
+.close-button:hover {
+    background-color: #cc0000;
+    box-shadow: 0 0 calc(10 * var(--game-unit)) #ff3333;
+}
+
+.hidden {
+    display: none;
 }

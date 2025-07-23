@@ -10,9 +10,8 @@
     <div id="game-container">
         <div id="mining-base">
             <div id="storage-area"></div>
+            <div id="factory-plot" class="buildable"></div>
         </div>
-
-        <!-- Planeten werden dynamisch per JS eingefügt -->
 
         <div id="score-display">Score: 0</div>
         <div id="collector-count-display">Sammler: 0</div>
@@ -26,6 +25,25 @@
             <div class="button-column">
                 <button id="upgrade-storage-button" class="game-button">Lager erweitern (Kosten: 50)</button>
                 <button id="upgrade-collector-yield-button" class="game-button">Sammler Ertrag (Kosten: 10)</button>
+            </div>
+        </div>
+
+        <div id="build-menu" class="menu-overlay hidden">
+            <div class="menu-content">
+                <h3>Baumenü</h3>
+                <p>Wähle, was du bauen möchtest.</p>
+                <button id="build-factory-button" class="game-button">Fabrik bauen (Kosten: 10 Score)</button>
+                <button id="close-build-menu-button" class="game-button close-button">Schließen</button>
+            </div>
+        </div>
+
+        <div id="factory-upgrade-menu" class="menu-overlay hidden">
+            <div class="menu-content">
+                <h3>Fabrik-Upgrades</h3>
+                <p id="factory-upgrade-status">Ertrag: 1x, Tempo: 5s</p>
+                <button id="upgrade-factory-yield-button" class="game-button">Ertrag upgraden (Kosten: 10 Score)</button>
+                <button id="upgrade-factory-speed-button" class="game-button">Tempo upgraden (Kosten: 20 Score)</button>
+                <button id="close-factory-upgrade-menu-button" class="game-button close-button">Schließen</button>
             </div>
         </div>
     </div>

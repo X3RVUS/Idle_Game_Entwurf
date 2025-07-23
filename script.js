@@ -2,96 +2,101 @@
 const gameContainer = document.getElementById('game-container');
 const miningBase = document.getElementById('mining-base');
 const planet = document.getElementById('planet');
+const storageArea = document.getElementById('storage-area');
+let storageFill; // Das Div, das die Füllung anzeigt
 
 const scoreDisplay = document.getElementById('score-display');
-const laserCountDisplay = document.getElementById('laser-count-display');
-const laserYieldDisplay = document.getElementById('laser-yield-display');
-const laserSpeedDisplay = document.getElementById('laser-speed-display');
+const collectorCountDisplay = document.getElementById('collector-count-display');
+const storageDisplay = document.getElementById('storage-display');
 
-const buyLaserButton = document.getElementById('buy-laser-button');
-const buyLaserMultiplierButton = document.getElementById('buy-laser-multiplier-button'); // Korrigiert: = document.getElementById statt = document = document.getElementById
-const upgradeLaserSpeedButton = document.getElementById('upgrade-laser-speed-button');
+const buyCollectorButton = document.getElementById('buy-collector-button');
+const upgradeCollectorSpeedButton = document.getElementById('upgrade-collector-speed-button');
+const upgradeStorageButton = document.getElementById('upgrade-storage-button');
+const upgradeCollectorYieldButton = document.getElementById('upgrade-collector-yield-button');
 
 // --- Spielzustandsvariablen ---
-let score = 100;
+let score = 0;
 
-// Laser-Variablen
-let lasers = []; // Enthält die Objekte für die Slots
-let activeLasers = 0; // Zählt die tatsächlich freigeschalteten Laser
-let laserYieldMultiplier = 1.0; // Startet bei x1.0
-let laserBaseFireInterval = 1000; // 1000ms = 1 Sekunde Basisschussintervall
-const laserBaseYield = 1; // Grundertrag pro Schuss pro Laser
+// Sammler-Variablen
+let collectors = [];
+let collectorBaseSpeed = 3; // Geschwindigkeit der Sammler-Punkte
+let collectorBaseYield = 1; // Materialien pro Lieferung
+let collectorYieldMultiplier = 1; // Multiplikator für Sammlerertrag
+const MINING_DURATION = 5000; // 5 Sekunden Mining-Dauer
 
-let buyLaserCost = 50; // Kosten für das Freischalten eines neuen Lasers
-let laserMultiplierCost = 10; // Kosten für den ersten Multiplikator
-let laserSpeedUpgradeCost = 20; // Kosten für das erste Geschwindigkeits-Upgrade
+let buyCollectorCost = 10;
+let collectorSpeedUpgradeCost = 20;
+let collectorYieldUpgradeCost = 10;
 
-const MAX_LASER_SLOTS = 5; // Maximale Anzahl der Laser-Slots
+// Lager-Variablen
+let currentStorage = 0;
+let maxStorage = 100;
+let storageUpgradeCost = 50;
 
 // Feste Maße des game-containers (aus CSS übernommen)
 const GAME_CONTAINER_WIDTH = 400;
 const GAME_CONTAINER_HEIGHT = 700;
 
 // Positionen und Dimensionen der Hauptelemente (relativ zum game-container)
-// Werden in updateElementPositions() aktualisiert
 let miningBaseX_rel, miningBaseY_rel, miningBaseWidth, miningBaseHeight;
 let planetX_rel, planetY_rel, planetWidth, planetHeight;
 
-// Zoom-Variablen - nur einmal deklarieren
+// Zoom-Variablen
 let zoomLevel = 1.0;
 const ZOOM_SPEED = 0.05;
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 2.0;
 
+// Sammler-Zustände (EXPLORING wurde entfernt)
+const STATE_RETURNING_TO_SOURCE = 'returningToSource'; // Fliegt zur Quelle (Planet)
+const STATE_MINING = 'mining'; // Wartet und sammelt am Planeten
+const STATE_RETURNING_TO_BASE = 'returningToBase'; // Fliegt zur Basis (Raumschiff-Dock)
+const STATE_DELIVERING = 'delivering'; // Ist am Dock und lagert ab
+
 // --- Hilfsfunktionen ---
 
-// Aktualisiert die Positionen und Größen der Hauptelemente
 function updateElementPositions() {
-    // Holen der gerenderten Größen der Basis und des Planeten (in Pixeln)
     miningBaseWidth = miningBase.offsetWidth;
     miningBaseHeight = miningBase.offsetHeight;
     planetWidth = planet.offsetWidth;
     planetHeight = planet.offsetHeight;
 
-    // `offsetLeft`/`offsetTop` sind korrekt, da sie relativ zum Positioned Parent (game-container) sind
-    miningBaseX_rel = miningBase.offsetLeft + miningBaseWidth / 2;
-    miningBaseY_rel = miningBase.offsetTop + miningBaseHeight / 2;
+    const gameContainerRect = gameContainer.getBoundingClientRect();
 
-    planetX_rel = planet.offsetLeft + planetWidth / 2;
-    planetY_rel = planet.offsetTop + planetHeight / 2;
+    miningBaseX_rel = (miningBase.getBoundingClientRect().left - gameContainerRect.left) + miningBaseWidth / 2;
+    miningBaseY_rel = (miningBase.getBoundingClientRect().top - gameContainerRect.top) + miningBaseHeight / 2;
+
+    planetX_rel = (planet.getBoundingClientRect().left - gameContainerRect.left) + planetWidth / 2;
+    planetY_rel = (planet.getBoundingClientRect().top - gameContainerRect.top) + planetHeight / 2;
 }
 
-// Aktualisiert den Score und die Anzeige
 function updateScore(amount) {
-    score = Math.round(score + amount); // Score immer runden
+    score = Math.round(score + amount);
     scoreDisplay.textContent = `Score: ${score}`;
-    checkButtonStates(); // Überprüft Button-Zustände nach Score-Änderung
+    checkButtonStates();
 }
 
-// Überprüft und aktualisiert den Zustand (aktiv/inaktiv) und Text der Buttons
+function updateStorage(amount) {
+    currentStorage = Math.min(maxStorage, currentStorage + amount); // Nicht über Max gehen
+    storageDisplay.textContent = `Lager: ${currentStorage} / ${maxStorage}`;
+    if (storageFill) { // Sicherstellen, dass storageFill existiert
+        storageFill.style.width = `${(currentStorage / maxStorage) * 100}%`;
+    }
+    checkButtonStates();
+}
+
 function checkButtonStates() {
-    // Laser freischalten Button
-    buyLaserButton.disabled = (score < buyLaserCost || activeLasers >= MAX_LASER_SLOTS);
-    buyLaserButton.textContent = `Laser freischalten (Kosten: ${buyLaserCost})`;
-    if (activeLasers >= MAX_LASER_SLOTS) {
-        buyLaserButton.textContent = `Max Laser (${MAX_LASER_SLOTS})`;
-    }
+    buyCollectorButton.disabled = (score < buyCollectorCost);
+    buyCollectorButton.textContent = `Neuer Sammler (Kosten: ${buyCollectorCost})`;
 
-    // Laser Multiplikator Button
-    buyLaserMultiplierButton.disabled = (score < laserMultiplierCost);
-    // Anzeige des Ertrags auf eine Dezimalstelle gerundet
-    laserYieldDisplay.textContent = `Ertrag: x${(Math.round(laserYieldMultiplier * 10) / 10).toFixed(1)}`;
-    buyLaserMultiplierButton.textContent = `Laser Multi (Kosten: ${laserMultiplierCost})`;
+    upgradeCollectorSpeedButton.disabled = (score < collectorSpeedUpgradeCost);
+    upgradeCollectorSpeedButton.textContent = `Sammler Tempo (Kosten: ${collectorSpeedUpgradeCost})`;
 
-    // Schussrate erhöhen Button
-    const isMaxSpeedReached = laserBaseFireInterval <= 50; // Limit bei 0.05 Sekunden
-    upgradeLaserSpeedButton.disabled = (score < laserSpeedUpgradeCost || isMaxSpeedReached);
-    // Anzeige der Schussrate auf zwei Dezimalstellen
-    laserSpeedDisplay.textContent = `Rate: ${ (laserBaseFireInterval / 1000).toFixed(2) }s`;
-    upgradeLaserSpeedButton.textContent = `Laser Speed (Kosten: ${laserSpeedUpgradeCost})`;
-    if (isMaxSpeedReached) {
-        upgradeLaserSpeedButton.textContent = `Max. Rate`;
-    }
+    upgradeCollectorYieldButton.disabled = (score < collectorYieldUpgradeCost);
+    upgradeCollectorYieldButton.textContent = `Sammler Ertrag (Kosten: ${collectorYieldUpgradeCost})`;
+
+    upgradeStorageButton.disabled = (score < storageUpgradeCost);
+    upgradeStorageButton.textContent = `Lager erweitern (Kosten: ${storageUpgradeCost})`;
 }
 
 // Zeigt ein kurzes "+X" Pop-up an der angegebenen Position
@@ -110,202 +115,215 @@ function showPlusAmount(amount, x, y) {
     });
 }
 
-// --- Laser Logik ---
+// --- Sammler Logik ---
+const DOCK_OFFSET_Y = 10; // Y-Offset von der Oberkante des Raumschiffs für Docks
+const COLLECTOR_SIZE = 15; // Größe des Sammler-Punktes (aus CSS)
+const MAX_COLLECTOR_DOCKS = 5; // Max Docks für Sammler (entspricht MAX_LASER_SLOTS von früher)
 
-// Berechnet die korrekte Position eines Lasers auf der Basis
-function calculateLaserPosition(slotIndex) {
-    // Die Maße des Dreiecks, wie im CSS definiert
-    const turretHalfWidth = 15; // border-left/right ist 15px, also Gesamtbreite 30px
-    const turretHeight = 25; // border-bottom ist 25px
-    const padding = 20; // Abstand vom Rand des Raumschiffs an der Oberseite
+// Funktion zum Hinzufügen eines Sammler-Schiffs
+function addCollectorShip() {
+    const collectorDotElement = document.createElement('div');
+    collectorDotElement.classList.add('collector-dot');
 
-    const baseTopEdgeY = miningBase.offsetTop;
-    const baseLeftEdgeX = miningBase.offsetLeft;
-    const baseWidth = miningBase.offsetWidth;
+    // Ladebalken für diesen Sammler erstellen
+    const progressBar = document.createElement('div');
+    progressBar.classList.add('mining-progress-bar');
+    const progressFill = document.createElement('div');
+    progressFill.classList.add('mining-progress-fill');
+    progressBar.appendChild(progressFill);
+    collectorDotElement.appendChild(progressBar);
 
-    // Berechne die verfügbare Breite für die Platzierung der Laser
-    const usableWidth = baseWidth - (2 * padding);
-    let spacing = 0;
-    if (MAX_LASER_SLOTS > 1) {
-        // Abstand zwischen den *Anfangspunkten* der Dreiecke (für die Gleichverteilung)
-        spacing = (usableWidth - (MAX_LASER_SLOTS * (turretHalfWidth * 2))) / (MAX_LASER_SLOTS - 1);
-    }
-    
-    // X-Position: Startet am linken Rand der Basis + Padding, dann für jeden Laser den Offset hinzufügen
-    // Die Position ist die linke Seite des Turret-Elements.
-    let posX = baseLeftEdgeX + padding + (slotIndex * (turretHalfWidth * 2 + spacing)) - 150;
+    gameContainer.appendChild(collectorDotElement);
 
-    // Y-Position: Die obere Kante des Rechtecks minus die Höhe des Dreiecks.
-    // So sitzt die Basis des Dreiecks (welches nach oben zeigt) direkt auf der oberen Kante des Rechtecks.
-    let posY = baseTopEdgeY - 80;
+    // Dock-Position für den neuen Sammler berechnen
+    // Dies entspricht der Position, an der er starten und abliefern wird
+    const dockPosX = miningBase.offsetLeft + (miningBase.offsetWidth / MAX_COLLECTOR_DOCKS) * (collectors.length % MAX_COLLECTOR_DOCKS + 0.5) - (COLLECTOR_SIZE / 2);
+    const dockPosY = miningBase.offsetTop - DOCK_OFFSET_Y;
 
-    // Wenn nur 1 Laser Slot, zentriere ihn oben auf der Basis
-    if (MAX_LASER_SLOTS === 1) {
-        posX = baseLeftEdgeX + (baseWidth / 2) - turretHalfWidth;
-    }
+    const collector = {
+        element: collectorDotElement,
+        progressBar: progressBar,
+        progressFill: progressFill,
+        x: dockPosX, // Start direkt am Dock
+        y: dockPosY,
+        vx: 0,
+        vy: 0,
+        state: STATE_RETURNING_TO_SOURCE, // NEU: Start direkt zum Planeten fliegend
+        targetX: 0,
+        targetY: 0,
+        deliveryAmount: Math.round(collectorBaseYield * collectorYieldMultiplier),
+        dockIndex: collectors.length % MAX_COLLECTOR_DOCKS,
+        miningStartTime: 0
+    };
+    collectors.push(collector);
 
-    return { x: posX, y: posY };
+    collectorCountDisplay.textContent = `Sammler: ${collectors.length}`;
 }
 
-// Initialisiert alle Laser-Slots zu Beginn des Spiels als inaktiv
-function initializeLaserSlots() {
-    updateElementPositions(); // Sicherstellen, dass die Basis-Größen aktuell sind!
-
-    for (let i = 0; i < MAX_LASER_SLOTS; i++) {
-        const laserTurretElement = document.createElement('div');
-        laserTurretElement.classList.add('laser-turret');
-
-        const laserBeamElement = document.createElement('div');
-        laserBeamElement.classList.add('laser-beam');
-
-        gameContainer.appendChild(laserTurretElement);
-        gameContainer.appendChild(laserBeamElement);
-
-        const pos = calculateLaserPosition(i);
-        laserTurretElement.style.left = `${pos.x}px`;
-        laserTurretElement.style.top = `${pos.y}px`;
-
-        const laser = {
-            element: laserTurretElement,
-            beamElement: laserBeamElement,
-            x: pos.x, // Speichern der X-Position des Turrets (relativ zum gameContainer)
-            y: pos.y, // Speichern der Y-Position des Turrets (relativ zum gameContainer)
-            lastFireTime: Date.now() + (i * 500), // Staffelung der Anfangsfeuerzeit
-            isActive: false // Initial inaktiv
-        };
-        lasers.push(laser);
-    }
-    laserCountDisplay.textContent = `Laser: ${activeLasers}/${MAX_LASER_SLOTS}`;
-}
-
-// Aktiviert den nächsten verfügbaren Laser-Slot
-function activateNextLaser() {
-    if (activeLasers < MAX_LASER_SLOTS) {
-        const laserToActivate = lasers[activeLasers];
-        laserToActivate.isActive = true;
-        laserToActivate.element.classList.add('active'); // Fügt CSS-Klasse für aktiven Zustand hinzu
-        activeLasers++;
-        laserCountDisplay.textContent = `Laser: ${activeLasers}/${MAX_LASER_SLOTS}`;
-    }
-}
-
-// --- Button-Funktionen ---
-
-// Kauft und schaltet einen neuen Laser frei
-function buyLaser() {
-    if (score >= buyLaserCost && activeLasers < MAX_LASER_SLOTS) {
-        updateScore(-buyLaserCost);
-        activateNextLaser();
-        buyLaserCost = Math.ceil(buyLaserCost * 1.5); // Kostenanstieg
+// --- Button-Funktionen für Sammler ---
+function buyCollector() {
+    if (score >= buyCollectorCost) {
+        updateScore(-buyCollectorCost);
+        addCollectorShip();
+        buyCollectorCost = Math.ceil(buyCollectorCost * 1.5);
         checkButtonStates();
     }
 }
 
-// Erhöht den Multiplikator für den Laser-Ertrag
-function buyLaserMultiplier() {
-    if (score >= laserMultiplierCost) {
-        updateScore(-laserMultiplierCost);
-        laserYieldMultiplier = Math.round((laserYieldMultiplier + 1) * 10) / 10; // Erhöht um 0.2, rundet auf 1 Dezimalstelle
-        laserMultiplierCost = Math.ceil(laserMultiplierCost * 1.5); // Kostenanstieg
+function upgradeCollectorSpeed() {
+    if (score >= collectorSpeedUpgradeCost && collectorBaseSpeed < 10) { // Limit für Geschwindigkeit
+        updateScore(-collectorSpeedUpgradeCost);
+        collectorBaseSpeed += 0.5; // Erhöht Geschwindigkeit
+        collectorSpeedUpgradeCost = Math.ceil(collectorSpeedUpgradeCost * 1.8); // Kostenanstieg
         checkButtonStates();
     }
 }
 
-// Erhöht die Schussgeschwindigkeit der Laser
-function upgradeLaserSpeed() {
-    if (score >= laserSpeedUpgradeCost && laserBaseFireInterval > 50) { // Limit bei 0.05 Sekunden
-        updateScore(-laserSpeedUpgradeCost);
-        laserBaseFireInterval = Math.max(50, laserBaseFireInterval * 0.9); // Reduziert das Intervall um 10%
-        laserSpeedUpgradeCost = Math.ceil(laserSpeedUpgradeCost * 1.2); // Kostenanstieg
+function upgradeCollectorYield() {
+    if (score >= collectorYieldUpgradeCost) {
+        updateScore(-collectorYieldUpgradeCost);
+        collectorYieldMultiplier = Math.round((collectorYieldMultiplier + 0.5) * 10) / 10; // Ertrag +0.5
+        collectors.forEach(c => c.deliveryAmount = Math.round(collectorBaseYield * collectorYieldMultiplier));
+        collectorYieldUpgradeCost = Math.ceil(collectorYieldUpgradeCost * 1.6);
         checkButtonStates();
     }
 }
+
+function upgradeStorage() {
+    if (score >= storageUpgradeCost) {
+        updateScore(-storageUpgradeCost);
+        maxStorage = Math.round(maxStorage * 1.5); // Lager um 50% erhöhen
+        storageUpgradeCost = Math.ceil(storageUpgradeCost * 2); // Kostenanstieg
+        storageDisplay.textContent = `Lager: ${currentStorage} / ${maxStorage}`;
+        checkButtonStates();
+    }
+}
+
 
 // --- Zoom-Funktionalität ---
 function handleZoom(event) {
-    event.preventDefault(); // Verhindert das Scrollen der Seite
+    event.preventDefault();
 
-    const zoomFactor = event.deltaY > 0 ? (1 - ZOOM_SPEED) : (1 + ZOOM_SPEED); // Mausrad hoch = rein, runter = raus
-    zoomLevel = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomLevel * zoomFactor)); // Zoom-Level innerhalb der Grenzen halten
+    const zoomFactor = event.deltaY > 0 ? (1 - ZOOM_SPEED) : (1 + ZOOM_SPEED);
+    zoomLevel = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomLevel * zoomFactor));
 
-    gameContainer.style.transform = `scale(${zoomLevel})`; // Skaliert den gesamten Spiel-Container
+    gameContainer.style.transform = `scale(${zoomLevel})`;
 
-    // Da der gameContainer skaliert wird, bleiben die relativen Positionen der Kindelemente innerhalb
-    // des Containers korrekt. Nur die `offsetLeft`/`offsetTop` etc. Werte der Kindelemente selbst
-    // (die durch CSS-Layout berechnet werden) müssen eventuell neu gelesen werden, um genaue Startpunkte
-    // für Laserstrahlen und Popups zu erhalten.
     updateElementPositions();
 }
 
 // --- Haupt-Game-Loop ---
 function gameLoop() {
-    // `updateElementPositions` wird hier aufgerufen, um aktuelle Positionen/Größen der Elemente
-    // (innerhalb des nicht-skalierten `gameContainer`s) zu erhalten.
-    // Dies ist wichtig für die korrekte Berechnung der Laserstrahlen und Popups.
     updateElementPositions();
 
-    const currentTime = Date.now();
-    lasers.forEach(laser => {
-        // Nur aktive Laser feuern, wenn das Intervall erreicht ist
-        if (laser.isActive && (currentTime - laser.lastFireTime >= laserBaseFireInterval)) {
-            const firedYield = Math.round(laserBaseYield * laserYieldMultiplier); // Berechnet und rundet den Ertrag
-            updateScore(firedYield); // Aktualisiert den Score
+    collectors.forEach(collector => {
+        const currentSpeed = collectorBaseSpeed;
+        const collectorSize = collector.element.offsetWidth;
 
-            // Zeigt das "+X" Popup über dem Planeten an
-            showPlusAmount(firedYield, planetX_rel, planetY_rel - (planetHeight / 2) - 30);
+        // Zustandsspezifische Logik
+        if (collector.state === STATE_RETURNING_TO_SOURCE) {
+            // Fliegt zum Planeten (Ressourcenquelle)
+            const targetX = planetX_rel - (collectorSize / 2); // Mitte des Planeten minus halbe Sammlergröße
+            const targetY = planetY_rel - (collectorSize / 2);
 
-            // Laserstrahl visualisieren
-            // Startpunkt des Strahls ist die Spitze des Dreiecks-Lasers
-            const turretCenterX_in_container = laser.x + 15; // Mitte der Dreiecksbasis (15px ist Hälfte von 30px Breite)
-            const turretTipY_in_container = laser.y; // Oberste Spitze des Dreiecks
+            const dx = targetX - collector.x;
+            const dy = targetY - collector.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
 
-            // Zielpunkt des Strahls ist die Mitte des Planeten
-            const dx = planetX_rel - turretCenterX_in_container;
-            const dy = planetY_rel - turretTipY_in_container;
-            const distance = Math.sqrt(dx * dx + dy * dy); // Länge des Strahls
-            const angle = Math.atan2(dy, dx); // Winkel des Strahls
+            if (distance < 5) { // Planeten-Nähe erreicht
+                collector.state = STATE_MINING; // Beginnt mit dem Mining
+                collector.miningStartTime = Date.now(); // Startzeit für Ladebalken
+                collector.progressBar.style.display = 'block'; // Ladebalken anzeigen
+            } else {
+                collector.x += (dx / distance) * currentSpeed * 1.2;
+                collector.y += (dy / distance) * currentSpeed * 1.2;
+            }
+            collector.progressBar.style.display = 'none'; // Ladebalken verstecken während des Flugs
 
-            laser.beamElement.style.left = `${turretCenterX_in_container}px`;
-            laser.beamElement.style.top = `${turretTipY_in_container}px`;
-            laser.beamElement.style.width = `${distance}px`;
-            laser.beamElement.style.transform = `rotate(${angle}rad)`; // Dreht den Strahl
-            laser.beamElement.style.display = 'block'; // Macht den Strahl sichtbar
+        } else if (collector.state === STATE_MINING) { // Mining-Zustand
+            const elapsedTime = Date.now() - collector.miningStartTime;
+            const progress = Math.min(1, elapsedTime / MINING_DURATION); // Fortschritt von 0 bis 1
 
-            // Versteckt den Strahl nach kurzer Zeit
-            setTimeout(() => {
-                laser.beamElement.style.display = 'none';
-            }, 100);
+            collector.progressFill.style.width = `${progress * 100}%`; // Ladebalken aktualisieren
+            collector.progressBar.style.display = 'block'; // Ladebalken anzeigen
 
-            laser.lastFireTime = currentTime; // Setzt den Zeitpunkt des letzten Feuerns zurück
+            if (progress >= 1) {
+                collector.state = STATE_RETURNING_TO_BASE; // Mining abgeschlossen, fliegt zur Basis
+                collector.progressBar.style.display = 'none'; // Ladebalken verstecken
+            }
+            // Sammler bleibt an Position (x,y) während des Mining
+            collector.x = planetX_rel - (collectorSize / 2); // Position am Planeten halten
+            collector.y = planetY_rel - (collectorSize / 2);
+
+        } else if (collector.state === STATE_RETURNING_TO_BASE) {
+            // Fliegt zurück zu seinem spezifischen Dock am Raumschiff
+            const dockPosX = miningBase.offsetLeft + (miningBase.offsetWidth / MAX_COLLECTOR_DOCKS) * (collector.dockIndex + 0.5) - (COLLECTOR_SIZE / 2);
+            const dockPosY = miningBase.offsetTop - DOCK_OFFSET_Y;
+
+            const dx = dockPosX - collector.x;
+            const dy = dockPosY - collector.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 5) { // Dock erreicht
+                collector.state = STATE_DELIVERING;
+                collector.x = dockPosX; // An Dock-Position fixieren
+                collector.y = dockPosY;
+            } else {
+                collector.x += (dx / distance) * currentSpeed * 1.5;
+                collector.y += (dy / distance) * currentSpeed * 1.5;
+            }
+            collector.progressBar.style.display = 'none'; // Ladebalken verstecken
+
+        } else if (collector.state === STATE_DELIVERING) {
+            // Materialien ablegen und Lager aktualisieren
+            const amountToDeliver = collector.deliveryAmount;
+            if (currentStorage + amountToDeliver <= maxStorage) {
+                updateStorage(amountToDeliver);
+                updateScore(amountToDeliver); // Score wird direkt beim Einlagern erhöht
+                showPlusAmount(amountToDeliver, miningBaseX_rel, miningBaseY_rel - miningBaseHeight / 2 - 20); // Über der Basis anzeigen
+                
+                // Nach Lieferung: direkt wieder zum Planeten fliegen (kein EXPLORING mehr)
+                collector.state = STATE_RETURNING_TO_SOURCE;
+            } else {
+                // Lager voll, Sammler wartet am Dock
+                // Bleibt in diesem Zustand, bis Platz im Lager ist
+            }
+            collector.progressBar.style.display = 'none'; // Ladebalken verstecken
         }
+
+        // Aktualisiere die Position des Sammler-Elements
+        collector.element.style.left = `${collector.x}px`;
+        collector.element.style.top = `${collector.y}px`;
     });
 
-    requestAnimationFrame(gameLoop); // Fordert den nächsten Frame an
+    requestAnimationFrame(gameLoop);
 }
 
 // --- Initialisierung beim Laden der Seite ---
-buyLaserButton.addEventListener('click', buyLaser);
-buyLaserMultiplierButton.addEventListener('click', buyLaserMultiplier);
-upgradeLaserSpeedButton.addEventListener('click', upgradeLaserSpeed);
+buyCollectorButton.addEventListener('click', buyCollector);
+upgradeCollectorSpeedButton.addEventListener('click', upgradeCollectorSpeed);
+upgradeCollectorYieldButton.addEventListener('click', upgradeCollectorYield);
+upgradeStorageButton.addEventListener('click', upgradeStorage);
+
+// Initialisiert die Lagerfläche visuell
+storageFill = document.createElement('div');
+storageFill.id = 'storage-fill';
+storageArea.appendChild(storageFill);
 
 // Event Listener für Größenänderung des Fensters (relevant, falls gameContainer responsive wäre)
-// Hier aktualisiert es die Elementpositionen, da sich die offset-Werte nach einem Zoom ändern könnten
-// und wir diese frischen Werte für die Strahl-Berechnung benötigen.
 window.addEventListener('resize', () => {
     updateElementPositions();
-    // Laser-Elemente müssen nicht explizit neu positioniert werden,
-    // da ihre `left`/`top` bereits relativ zum gameContainer gesetzt sind
-    // und der gameContainer selbst skaliert wird.
 });
 
-// Initialisiert die Laser-Slots und platziert sie visuell
-updateElementPositions(); // Wichtig, um erste Positionen zu bekommen
-initializeLaserSlots();
+updateElementPositions(); // Einmal am Anfang aufrufen
 
-// Aktiviert den ersten Laser beim Spielstart
-activateNextLaser();
+// Füge einen ersten Sammler hinzu, um das Spiel zu starten
+addCollectorShip();
 
-// Aktualisiert den Zustand aller Buttons basierend auf dem Start-Score
+// Initialer Zustand des Lagers
+updateStorage(0); // Setzt Anzeige auf 0 / Max
+
+// Aktualisiert den Zustand aller Buttons
 checkButtonStates();
 
 // Event Listener für Mausrad zum Zoomen

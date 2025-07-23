@@ -1,0 +1,70 @@
+export const CONFIG = {
+    // Globale Spieleinstellungen
+    Game: {
+        initialScore: 0,
+        initialStorage: 0,
+        initialMaxStorage: 100,
+        gameUnitMinScale: 0.5, // Min-Skalierung der Game-Unit in Pixeln pro VMin (z.B. 0.5px pro 1vmin)
+        gameUnitMaxScale: 5.0,  // Max-Skalierung der Game-Unit in Pixeln pro VMin
+        zoomStep: 0.05, // 5% Zoom-Schritt
+    },
+
+    // Planeten-Einstellungen
+    Planets: {
+        initialCount: 3,
+        spawnAreaTopRelative: 0.05, // Relative Y-Position von oben (5%)
+        spawnAreaBottomRelative: 0.40, // Relative Y-Position von oben (40%)
+        minResources: 100,
+        maxResources: 500,
+        sizePercent: 8, // Planetengröße in % der --game-unit (aus CSS)
+        respawnDelayMs: 3000, // Zeit bis neue Planeten nach Abbau aller alten spawnen
+    },
+
+    // Sammler-Einstellungen
+    Collectors: {
+        initialCount: 1,
+        maxDocks: 4, // Max 4 Sammler-Slots
+        baseSpeed: 0.5, // Geschwindigkeit in % des Containers pro Frame
+        baseYield: 1, // Basis-Ertrag pro Sammelzyklus
+        miningDurationMs: 5000, // Basis-Dauer des Abbaus am Planeten
+        sizePercent: 1.5, // Größe des Sammler-Punktes in % der --game-unit (aus CSS)
+        dockOffsetYPercent: 1, // Y-Offset von der Oberkante des Raumschiffs für Docks in % der game-unit
+
+        // Upgrade-Kosten und -Werte
+        buyCost: 10,
+        buyCostMultiplier: 1.5,
+
+        speedUpgradeCost: 20,
+        speedUpgradeCostMultiplier: 1.8,
+        speedUpgradeIncrease: 0.1, // Erhöhung der Geschwindigkeit pro Upgrade
+
+        yieldUpgradeCost: 10,
+        yieldUpgradeCostMultiplier: 1.6,
+        yieldUpgradeIncrease: 0.5, // Erhöhung des Ertrags pro Upgrade
+    },
+
+    // Lager-Einstellungen
+    Storage: {
+        upgradeCost: 50,
+        upgradeCostMultiplier: 2,
+        upgradeCapacityMultiplier: 1.5, // Faktor zur Erhöhung der Kapazität
+    },
+
+    // Fabrik-Einstellungen
+    Factories: {
+        maxSlots: 4, // Max 4 Fabrik-Slots
+        buildCost: 10, // Score-Kosten für eine Fabrik
+        storageConsumption: 10, // Ressourcenverbrauch pro Produktion
+        baseYield: 5, // Basis-Score-Ertrag pro Produktion
+        baseDurationMs: 5000, // Basis-Produktionszeit in ms
+
+        // Individuelle Upgrade-Kosten und -Werte pro Fabrik-Instanz
+        initialYieldUpgradeCost: 10,
+        yieldUpgradeCostMultiplier: 1.8,
+        yieldUpgradeIncrease: 0.2, // Erhöhung des Ertrags-Multiplikators pro Upgrade
+
+        initialSpeedUpgradeCost: 20,
+        speedUpgradeCostMultiplier: 2,
+        speedUpgradeIncrease: 0.1, // Erhöhung des Geschwindigkeits-Multiplikators pro Upgrade
+    },
+};

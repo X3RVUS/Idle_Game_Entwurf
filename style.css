@@ -27,20 +27,22 @@ body {
 
 #mining-base {
     position: absolute;
-    width: calc(30 * var(--game-unit));
-    height: calc(10 * var(--game-unit));
+    width: calc(40 * var(--game-unit)); /* Leicht vergrößert */
+    height: calc(14 * var(--game-unit)); /* Leicht vergrößert */
     background-color: #5a5a5a;
     left: 50%;
     top: 65%;
     transform: translate(-50%, -50%);
-    border-radius: 0;
-    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
-    box-shadow: 0 0 calc(10 * var(--game-unit)) #00ff00;
-    border: calc(1 * var(--game-unit)) solid #00cc00;
+    border-radius: calc(2 * var(--game-unit)); /* Ecken abrunden */
+    box-shadow: 0 0 calc(5 * var(--game-unit)) #00ff00; /* Schein-Effekt reduziert */
+    border: calc(0.5 * var(--game-unit)) solid #00cc00; /* Rand verkleinert und gleiche Farbe wie Schein */
     z-index: 10;
     display: flex; /* Für die Ausrichtung von Bauplätzen */
-    justify-content: center;
-    align-items: center;
+    justify-content: space-around; /* Fabriken gleichmäßig verteilen */
+    align-items: flex-start; /* Fabriken oben ausrichten */
+    padding-top: calc(2 * var(--game-unit)); /* Platz für Fabriken über dem Lager */
+    flex-wrap: nowrap; /* Fabrik-Slots in einer Reihe halten */
+    box-sizing: border-box; /* Sicherstellen, dass Padding in der Größe enthalten ist */
 }
 
 #storage-area {
@@ -51,7 +53,7 @@ body {
     width: 80%;
     height: calc(2 * var(--game-unit));
     background-color: #333;
-    border: calc(1 * var(--game-unit)) solid #00ff00;
+    border: calc(0.5 * var(--game-unit)) solid #00cc00; /* Rand angepasst */
     border-radius: calc(3 * var(--game-unit));
     overflow: hidden;
 }
@@ -102,8 +104,8 @@ body {
     width: calc(4 * var(--game-unit));
     height: calc(0.7 * var(--game-unit));
     background-color: rgba(0, 0, 0, 0.7);
-    border: calc(1 * var(--game-unit)) solid #00ff00;
-    border-radius: calc(2 * var(--game-unit));
+    border: calc(0.5 * var(--game-unit)) solid #00cc00; /* Rand angepasst */
+    border-radius: calc(1.5 * var(--game-unit)); /* Leicht abgerundeter */
     overflow: hidden;
     display: none;
 }
@@ -203,15 +205,23 @@ body {
 }
 
 /* --- Fabrik-bezogene Stile --- */
-#factory-plot {
-    position: absolute;
-    width: calc(8 * var(--game-unit));
-    height: calc(8 * var(--game-unit));
+.factory-slot { /* Neuer Container für die Fabrik-Slots */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: calc(7 * var(--game-unit)); /* Leicht reduziert */
+    height: calc(7 * var(--game-unit)); /* Leicht reduziert */
+    margin: calc(0.5 * var(--game-unit)); /* Abstand zwischen den Slots */
+    box-sizing: border-box;
+    flex-shrink: 0; /* Nicht schrumpfen */
+}
+
+.factory-plot {
+    width: 100%; /* Füllt den Slot aus */
+    height: 100%; /* Füllt den Slot aus */
     border: calc(0.5 * var(--game-unit)) dashed #007bff;
     background-color: rgba(0, 123, 255, 0.1); /* Leicht blauer Hintergrund */
-    top: 20%; /* Position innerhalb der Mining-Base */
-    left: 50%;
-    transform: translateX(-50%);
     cursor: pointer;
     display: flex;
     justify-content: center;
@@ -220,27 +230,22 @@ body {
     color: #007bff;
     text-align: center;
     border-radius: calc(1 * var(--game-unit));
-    box-sizing: border-box; /* Sicherstellen, dass Padding/Border in der Größe enthalten ist */
+    box-sizing: border-box;
 }
 
-#factory-plot::before {
+.factory-plot::before {
     content: "Bauplatz";
 }
 
-
 .factory {
-    position: absolute;
-    width: calc(8 * var(--game-unit));
-    height: calc(8 * var(--game-unit));
+    width: 100%; /* Füllt den Slot aus */
+    height: 100%; /* Füllt den Slot aus */
     background-color: #007bff; /* Gefüllte blaue Box */
     border: calc(0.5 * var(--game-unit)) solid #0056b3;
     border-radius: calc(1 * var(--game-unit));
     box-shadow: 0 0 calc(8 * var(--game-unit)) rgba(0, 123, 255, 0.7);
     cursor: pointer;
     z-index: 12;
-    top: 20%; /* Gleiche Position wie Bauplatz */
-    left: 50%;
-    transform: translateX(-50%);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -254,6 +259,7 @@ body {
 .factory::before {
     content: "Fabrik";
 }
+
 
 /* --- Menü-Overlays --- */
 .menu-overlay {

@@ -1,3 +1,5 @@
+/* style.css */
+
 body {
     margin: 0;
     overflow: hidden;
@@ -19,42 +21,50 @@ body {
     background-color: #1a1a3a;
     overflow: hidden;
     box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
-    /* Keine transform: scale mehr hier. Zoom wird über --game-unit gesteuert. */
     --game-unit: 1vmin; /* Fallback, wird durch JS überschrieben */
 }
 
-/* Alle Größen und Positionen basieren jetzt auf --game-unit */
+/* Container für Planeten */
+#planets-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Klicks gehen durch zu game-container */
+}
+
 
 #mining-base {
     position: absolute;
-    width: calc(40 * var(--game-unit)); /* Leicht vergrößert */
-    height: calc(14 * var(--game-unit)); /* Leicht vergrößert */
+    width: calc(40 * var(--game-unit));
+    height: calc(24 * var(--game-unit)); /* Deutlich vergrößert für zwei Reihen */
     background-color: #5a5a5a;
     left: 50%;
     top: 65%;
     transform: translate(-50%, -50%);
-    border-radius: calc(2 * var(--game-unit)); /* Ecken abrunden */
-    box-shadow: 0 0 calc(5 * var(--game-unit)) #00ff00; /* Schein-Effekt reduziert */
-    border: calc(0.5 * var(--game-unit)) solid #00cc00; /* Rand verkleinert und gleiche Farbe wie Schein */
+    border-radius: calc(2 * var(--game-unit));
+    box-shadow: 0 0 calc(5 * var(--game-unit)) #00ff00;
+    border: calc(0.5 * var(--game-unit)) solid #00cc00;
     z-index: 10;
-    display: flex; /* Für die Ausrichtung von Bauplätzen */
+    display: flex;
     justify-content: space-around; /* Fabriken gleichmäßig verteilen */
     align-items: flex-start; /* Fabriken oben ausrichten */
-    padding-top: calc(2 * var(--game-unit)); /* Platz für Fabriken über dem Lager */
-    flex-wrap: nowrap; /* Fabrik-Slots in einer Reihe halten */
-    box-sizing: border-box; /* Sicherstellen, dass Padding in der Größe enthalten ist */
+    padding-top: calc(2 * var(--game-unit));
+    flex-wrap: wrap; /* Erlaubt das Umbrechen in mehrere Reihen */
+    box-sizing: border-box;
 }
 
 #storage-area {
     position: absolute;
-    bottom: calc(1 * var(--game-unit));
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80%;
-    height: calc(2 * var(--game-unit));
+    /* Neue Positionierung oben links, unter den anderen Anzeigen */
+    top: calc(11.5 * var(--game-unit)); /* Angepasst, um unter storage-display zu passen */
+    left: calc(1 * var(--game-unit)); /* Gleicher Left-Wert wie die Anzeigen */
+    width: calc(25 * var(--game-unit)); /* Gleiche Breite wie die Anzeigen */
+    height: calc(1 * var(--game-unit)); /* Etwas schmaler */
     background-color: #333;
     border: calc(0.5 * var(--game-unit)) solid #00cc00; /* Rand angepasst */
-    border-radius: calc(3 * var(--game-unit));
+    border-radius: calc(0.5 * var(--game-unit)); /* Weniger abgerundet, mehr wie eine Leiste */
     overflow: hidden;
 }
 
@@ -73,19 +83,42 @@ body {
     border-radius: 50%;
     box-shadow: 0 0 calc(15 * var(--game-unit)) rgba(216, 27, 96, 0.7);
     z-index: 9;
+    /* 1. Planetendrehung - nur auf den Planeten anwenden */
+    animation: planetRotate 60s linear infinite;
+}
+
+@keyframes planetRotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .planet-resources {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    /* 1. Wichtig: Anti-Rotation für die Zahlen */
+    transform: translate(-50%, -50%); /* Startposition */
+    animation: antiRotate 60s linear infinite; /* Gegenläufig zur Planeten-Rotation */
     color: white;
     font-size: calc(1.5 * var(--game-unit));
     font-weight: bold;
     text-shadow: calc(1 * var(--game-unit)) calc(1 * var(--game-unit)) calc(2 * var(--game-unit)) black;
     pointer-events: none;
 }
+
+@keyframes antiRotate {
+    from {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+        transform: translate(-50%, -50%) rotate(-360deg);
+    }
+}
+
 
 .collector-dot {
     position: absolute;
@@ -97,20 +130,20 @@ body {
     z-index: 11;
 }
 
-.mining-progress-bar {
+.mining-progress-bar { /* .travel-progress-bar entfernt */
     position: absolute;
-    top: calc(-1.5 * var(--game-unit));
-    left: calc(-0.5 * var(--game-unit));
+    top: calc(1.5 * var(--game-unit)); /* Unter dem Collector-Dot */
+    left: calc(-1.25 * var(--game-unit)); /* Zentriert unter dem Dot */
     width: calc(4 * var(--game-unit));
     height: calc(0.7 * var(--game-unit));
     background-color: rgba(0, 0, 0, 0.7);
-    border: calc(0.5 * var(--game-unit)) solid #00cc00; /* Rand angepasst */
-    border-radius: calc(1.5 * var(--game-unit)); /* Leicht abgerundeter */
+    border: calc(0.5 * var(--game-unit)) solid #00cc00;
+    border-radius: calc(1.5 * var(--game-unit));
     overflow: hidden;
-    display: none;
+    display: none; /* Initial versteckt, Steuerung per JS */
 }
 
-.mining-progress-fill {
+.mining-progress-fill { /* .travel-progress-fill entfernt */
     height: 100%;
     width: 0%;
     background-color: #00ff00;
@@ -164,7 +197,6 @@ body {
     justify-content: space-around;
     gap: calc(1 * var(--game-unit));
     width: calc(95 * var(--game-unit));
-    /* max-width: none; ist nicht mehr notwendig, da die Breite in game-unit ist */
 }
 
 .button-column {
@@ -205,23 +237,23 @@ body {
 }
 
 /* --- Fabrik-bezogene Stile --- */
-.factory-slot { /* Neuer Container für die Fabrik-Slots */
+.factory-slot {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: calc(7 * var(--game-unit)); /* Leicht reduziert */
-    height: calc(7 * var(--game-unit)); /* Leicht reduziert */
-    margin: calc(0.5 * var(--game-unit)); /* Abstand zwischen den Slots */
+    width: calc(7 * var(--game-unit));
+    height: calc(7 * var(--game-unit));
+    margin: calc(0.5 * var(--game-unit));
     box-sizing: border-box;
-    flex-shrink: 0; /* Nicht schrumpfen */
+    flex-shrink: 0;
 }
 
 .factory-plot {
-    width: 100%; /* Füllt den Slot aus */
-    height: 100%; /* Füllt den Slot aus */
+    width: 100%;
+    height: 100%;
     border: calc(0.5 * var(--game-unit)) dashed #007bff;
-    background-color: rgba(0, 123, 255, 0.1); /* Leicht blauer Hintergrund */
+    background-color: rgba(0, 123, 255, 0.1);
     cursor: pointer;
     display: flex;
     justify-content: center;
@@ -238,15 +270,17 @@ body {
 }
 
 .factory {
-    width: 100%; /* Füllt den Slot aus */
-    height: 100%; /* Füllt den Slot aus */
-    background-color: #007bff; /* Gefüllte blaue Box */
+    position: relative; /* Wichtig für positionierung des Fortschrittbalkens */
+    width: 100%;
+    height: 100%;
+    background-color: #007bff;
     border: calc(0.5 * var(--game-unit)) solid #0056b3;
     border-radius: calc(1 * var(--game-unit));
     box-shadow: 0 0 calc(8 * var(--game-unit)) rgba(0, 123, 255, 0.7);
     cursor: pointer;
     z-index: 12;
     display: flex;
+    flex-direction: column; /* Für Text und Balken */
     justify-content: center;
     align-items: center;
     color: white;
@@ -254,10 +288,31 @@ body {
     font-weight: bold;
     text-shadow: calc(0.5 * var(--game-unit)) calc(0.5 * var(--game-unit)) calc(1 * var(--game-unit)) rgba(0,0,0,0.5);
     box-sizing: border-box;
+    overflow: hidden; /* Sicherstellen, dass der Balken nicht überläuft */
 }
 
 .factory::before {
     content: "Fabrik";
+    position: relative; /* Damit es über dem Balken liegt */
+    z-index: 1;
+}
+
+.factory-progress-bar {
+    position: absolute;
+    bottom: calc(0.5 * var(--game-unit)); /* Am unteren Rand der Fabrik */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%; /* Fast die volle Breite der Fabrik */
+    height: calc(1 * var(--game-unit));
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: calc(0.5 * var(--game-unit));
+    overflow: hidden;
+}
+
+.factory-progress-fill {
+    height: 100%;
+    width: 0%;
+    background-color: #33aaff; /* Blauer Balken */
 }
 
 

@@ -1,7 +1,7 @@
 export const CONFIG = {
     // Globale Spieleinstellungen
     Game: {
-        initialScore: 0,
+        initialScore: 1000,
         initialStorage: 0,
         initialMaxStorage: 100,
         gameUnitMinScale: 0.5, // Min-Skalierung der Game-Unit in Pixeln pro VMin (z.B. 0.5px pro 1vmin)
@@ -23,7 +23,7 @@ export const CONFIG = {
     // Sammler-Einstellungen
     Collectors: {
         initialCount: 1,
-        maxDocks: 4, // Max 4 Sammler-Slots
+        maxDocks: 40, // Max 4 Sammler-Slots
         baseSpeed: 0.5, // Geschwindigkeit in % des Containers pro Frame
         baseYield: 1, // Basis-Ertrag pro Sammelzyklus
         miningDurationMs: 5000, // Basis-Dauer des Abbaus am Planeten
@@ -52,10 +52,10 @@ export const CONFIG = {
 
     // Fabrik-Einstellungen
     Factories: {
-        maxSlots: 4, // Max 4 Fabrik-Slots
+        maxSlots: 8, // Max 8 Fabrik-Slots
         buildCost: 10, // Score-Kosten für eine Fabrik
-        storageConsumption: 10, // Ressourcenverbrauch pro Produktion
-        baseYield: 5, // Basis-Score-Ertrag pro Produktion
+        storageConsumption: 5, // Ressourcenverbrauch pro Produktion auf 5 geändert
+        baseYield: 5, // Basis-Score-Ertrag pro Produktion auf 5 geändert
         baseDurationMs: 5000, // Basis-Produktionszeit in ms
 
         // Individuelle Upgrade-Kosten und -Werte pro Fabrik-Instanz

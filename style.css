@@ -32,13 +32,15 @@ body {
     width: 100%;
     height: 100%;
     pointer-events: none; /* Klicks gehen durch zu game-container */
+    z-index: 8; /* Sicherstellen, dass sie über dem Hintergrund sind */
+    overflow: visible; /* NEU: Sollte Planeten ermöglichen, über die Grenzen des Containers zu ragen, falls nötig */
 }
 
 
 #mining-base {
     position: absolute;
     width: calc(40 * var(--game-unit));
-    height: calc(24 * var(--game-unit)); /* Deutlich vergrößert für zwei Reihen */
+    height: calc(24 * var(--game-unit));
     background-color: #5a5a5a;
     left: 50%;
     top: 65%;
@@ -48,10 +50,10 @@ body {
     border: calc(0.5 * var(--game-unit)) solid #00cc00;
     z-index: 10;
     display: flex;
-    justify-content: space-around; /* Fabriken gleichmäßig verteilen */
-    align-items: flex-start; /* Fabriken oben ausrichten */
+    justify-content: space-around;
+    align-items: flex-start;
     padding-top: calc(2 * var(--game-unit));
-    flex-wrap: wrap; /* Erlaubt das Umbrechen in mehrere Reihen */
+    flex-wrap: wrap;
     box-sizing: border-box;
 }
 
@@ -74,11 +76,11 @@ body {
     transition: width 0.1s linear;
 }
 
-/* NEU: Güter-Anzeige */
+/* Güter-Anzeige */
 #goods-display {
     position: absolute;
     left: calc(1 * var(--game-unit));
-    top: calc(13.5 * var(--game-unit)); /* Unter der Lager-Anzeige */
+    top: calc(13.5 * var(--game-unit));
     background-color: rgba(0, 0, 0, 0.5);
     padding: calc(0.5 * var(--game-unit)) calc(1 * var(--game-unit));
     border-radius: calc(3 * var(--game-unit));
@@ -89,12 +91,12 @@ body {
 
 #goods-area {
     position: absolute;
-    top: calc(17 * var(--game-unit)); /* Unter der Güter-Anzeige */
+    top: calc(17 * var(--game-unit));
     left: calc(1 * var(--game-unit));
     width: calc(25 * var(--game-unit));
     height: calc(1 * var(--game-unit));
     background-color: #333;
-    border: calc(0.5 * var(--game-unit)) solid #ffc107; /* Gelber Rand */
+    border: calc(0.5 * var(--game-unit)) solid #ffc107;
     border-radius: calc(0.5 * var(--game-unit));
     overflow: hidden;
 }
@@ -102,7 +104,7 @@ body {
 #goods-fill {
     height: 100%;
     width: 0%;
-    background-color: #ffc107; /* Gelbe Füllung */
+    background-color: #ffc107;
     transition: width 0.1s linear;
 }
 
@@ -193,7 +195,7 @@ body {
 /* NEU: Pulse für Güter (gelb) */
 .goods-pulse {
     position: absolute;
-    color: #ffc107; /* Gelb */
+    color: #ffc107;
     font-size: calc(2 * var(--game-unit));
     font-weight: bold;
     opacity: 1;
@@ -356,6 +358,67 @@ body {
     height: 100%;
     width: 0%;
     background-color: #33aaff;
+}
+
+
+/* NEU: Handelsposten-bezogene Stile */
+.trade-post-plot {
+    width: 100%;
+    height: 100%;
+    border: calc(0.5 * var(--game-unit)) dashed #ffc107; /* Orange gestrichelt */
+    background-color: rgba(255, 193, 7, 0.1);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: calc(1.2 * var(--game-unit));
+    color: #ffc107;
+    text-align: center;
+    border-radius: calc(1 * var(--game-unit));
+    box-sizing: border-box;
+}
+
+.trade-post-plot::before {
+    content: "Handelsposten Bauplatz";
+}
+
+.trade-post {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: #ff8c00; /* Vollflächig Orange */
+    border: calc(0.5 * var(--game-unit)) solid #e67300;
+    border-radius: calc(1 * var(--game-unit));
+    box-shadow: 0 0 calc(8 * var(--game-unit)) rgba(255, 140, 0, 0.7);
+    cursor: pointer;
+    z-index: 12;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: calc(1.5 * var(--game-unit));
+    font-weight: bold;
+    text-shadow: calc(0.5 * var(--game-unit)) calc(0.5 * var(--game-unit)) calc(1 * var(--game-unit)) rgba(0,0,0,0.5);
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.trade-post::before {
+    content: "Handelsposten";
+    position: relative;
+    z-index: 1;
+}
+
+/* Händler-Flugobjekt */
+.trader-ship {
+    position: absolute;
+    width: calc(2 * var(--game-unit)); /* Kleineres Quadrat */
+    height: calc(2 * var(--game-unit));
+    background-color: #ff4500; /* Dunkles Orange/Rot */
+    border: calc(0.2 * var(--game-unit)) solid #cc3700;
+    box-shadow: 0 0 calc(5 * var(--game-unit)) #ff4500;
+    z-index: 15;
 }
 
 

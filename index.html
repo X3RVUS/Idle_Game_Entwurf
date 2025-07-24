@@ -30,7 +30,7 @@
                 <div id="factory-plot-5" class="factory-plot buildable" data-slot-index="5"></div>
             </div>
             <div class="factory-slot">
-                <div id="factory-plot-6" class="factory-plot buildable" data-slot-index="6"></div>
+                <div id="trade-post-plot-0" class="trade-post-plot buildable" data-slot-index="6"></div>
             </div>
             <div class="factory-slot">
                 <div id="factory-plot-7" class="factory-plot buildable" data-slot-index="7"></div>
@@ -42,7 +42,7 @@
         <div id="collector-count-display">Sammler: 0</div>
         <div id="storage-display">Lager: 0 / 100</div>
         <div id="storage-area">
-            <div id="storage-fill"></div>storage-area
+            <div id="storage-fill"></div>
         </div>
 
         <div id="goods-display">Güter: 0 / 50</div>
@@ -69,7 +69,7 @@
                 <h3>Baumenü</h3>
                 <p>Wähle, was du bauen möchtest.</p>
                 <button id="build-factory-button" class="game-button">Fabrik bauen (Kosten: 10 Score)</button>
-                <button id="close-build-menu-button" class="game-button close-button">Schließen</button>
+                <button id="build-trade-post-button" class="game-button hidden">Handelsposten bauen (Kosten: 50 Score)</button> <button id="close-build-menu-button" class="game-button close-button">Schließen</button>
             </div>
         </div>
 
@@ -80,6 +80,15 @@
                 <button id="upgrade-factory-yield-button" class="game-button">Ertrag upgraden (Kosten: 10 Score)</button>
                 <button id="upgrade-factory-speed-button" class="game-button">Tempo upgraden (Kosten: 20 Score)</button>
                 <button id="close-factory-upgrade-menu-button" class="game-button close-button">Schließen</button>
+            </div>
+        </div>
+
+        <div id="trade-post-upgrade-menu" class="menu-overlay hidden"> <div class="menu-content">
+                <h3>Handelsposten-Upgrades</h3>
+                <p id="trade-post-upgrade-status">Verkaufspreis: 1x, Händler Tempo: 10s</p>
+                <button id="upgrade-trade-post-price-button" class="game-button">Preis erhöhen (Kosten: 20 Score)</button>
+                <button id="upgrade-trade-post-speed-button" class="game-button">Händler Tempo (Kosten: 30 Score)</button>
+                <button id="close-trade-post-upgrade-menu-button" class="game-button close-button">Schließen</button>
             </div>
         </div>
     </div>

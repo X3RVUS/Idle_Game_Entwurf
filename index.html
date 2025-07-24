@@ -3,72 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mein Weltraum-Tycoon</title>
+    <title>Cosmic Mining Outpost</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game-container">
-        <div id="stats-panel">
-            <div id="score-display">Score: 0</div>
-            <div id="collector-count-display">Sammler: 0</div>
-            <div id="storage-display">Lager: 0 / 100</div>
-            <div id="goods-display">Güter: 0 / 50</div>
-            <div class="progress-container" id="storage-area">
-                <div class="progress-fill" id="storage-fill"></div>
+        <div id="planets-container"></div> 
+
+        <div id="mining-base">
+            <div class="factory-slot">
+                <div id="factory-plot-0" class="factory-plot buildable" data-slot-index="0"></div>
             </div>
-            <div class="progress-container" id="goods-area">
-                <div class="progress-fill" id="goods-fill"></div>
+            <div class="factory-slot">
+                <div id="factory-plot-1" class="factory-plot buildable" data-slot-index="1"></div>
+            </div>
+            <div class="factory-slot">
+                <div id="factory-plot-2" class="factory-plot buildable" data-slot-index="2"></div>
+            </div>
+            <div class="factory-slot">
+                <div id="factory-plot-3" class="factory-plot buildable" data-slot-index="3"></div>
+            </div>
+            <div class="factory-slot">
+                <div id="factory-plot-4" class="factory-plot buildable" data-slot-index="4"></div>
+            </div>
+            <div class="factory-slot">
+                <div id="factory-plot-5" class="factory-plot buildable" data-slot-index="5"></div>
+            </div>
+            <div class="factory-slot">
+                <div id="trade-post-plot-0" class="trade-post-plot buildable" data-slot-index="6"></div>
+            </div>
+            <div class="factory-slot">
+                <div id="factory-plot-7" class="factory-plot buildable" data-slot-index="7"></div>
+            </div>
+        </div>
+        
+
+        <div id="score-display">Score: 0</div>
+        <div id="collector-count-display">Sammler: 0</div>
+        <div id="storage-display">Lager: 0 / 100</div>
+        <div id="storage-area">
+            <div id="storage-fill"></div>
+        </div>
+
+        <div id="goods-display">Güter: 0 / 50</div>
+        <div id="goods-area">
+            <div id="goods-fill"></div>
+        </div>
+
+        <div id="buttons-container">
+            <div class="button-column">
+                <button id="buy-collector-button" class="game-button">Neuer Sammler (Kosten: 10)</button>
+                <button id="upgrade-collector-speed-button" class="game-button">Sammler Tempo (Kosten: 20)</button>
+            </div>
+            <div class="button-column">
+                <button id="upgrade-storage-button" class="game-button">Lager erweitern (Kosten: 50)</button>
+                <button id="upgrade-collector-yield-button" class="game-button">Sammler Ertrag (Kosten: 10)</button>
+            </div>
+            <div class="button-column">
+                <button id="upgrade-goods-storage-button" class="game-button">Güterlager erweitern (Kosten: 75)</button>
             </div>
         </div>
 
-        <div id="buttons-panel">
-            <button id="buy-collector-button">Neuer Sammler (Kosten: 10)</button>
-            <button id="upgrade-collector-speed-button">Sammler Tempo (Kosten: 50)</button>
-            <button id="upgrade-collector-yield-button">Sammler Ertrag (Kosten: 75)</button>
-            <button id="upgrade-storage-button">Lager erweitern (Kosten: 100)</button>
-            <button id="upgrade-goods-storage-button">Güterlager erweitern (Kosten: 120)</button>
+        <div id="build-menu" class="menu-overlay hidden">
+            <div class="menu-content">
+                <h3>Baumenü</h3>
+                <p>Wähle, was du bauen möchtest.</p>
+                <button id="build-factory-button" class="game-button">Fabrik bauen (Kosten: 10 Score)</button>
+                <button id="build-trade-post-button" class="game-button hidden">Handelsposten bauen (Kosten: 50 Score)</button> <button id="close-build-menu-button" class="game-button close-button">Schließen</button>
+            </div>
         </div>
 
-        <div id="mining-base"></div>
-
-        <div id="planets-container">
+        <div id="factory-upgrade-menu" class="menu-overlay hidden">
+            <div class="menu-content">
+                <h3>Fabrik-Upgrades</h3>
+                <p id="factory-upgrade-status">Ertrag: 1x, Tempo: 5s</p>
+                <button id="upgrade-factory-yield-button" class="game-button">Ertrag upgraden (Kosten: 10 Score)</button>
+                <button id="upgrade-factory-speed-button" class="game-button">Tempo upgraden (Kosten: 20 Score)</button>
+                <button id="close-factory-upgrade-menu-button" class="game-button close-button">Schließen</button>
+            </div>
         </div>
 
-        <div class="plot-container">
-            <div class="factory-plot" id="factory-plot-0" data-slot-index="0"></div> 
-            <div class="factory-plot" id="factory-plot-1" data-slot-index="1"></div>
-            <div class="factory-plot" id="factory-plot-2" data-slot-index="2"></div>
-            <div class="factory-plot" id="factory-plot-3" data-slot-index="3"></div>
-            <div class="factory-plot" id="factory-plot-4" data-slot-index="4"></div>
-            <div class="factory-plot" id="factory-plot-5" data-slot-index="5"></div>
-            <div class="factory-plot" id="trade-post-plot-0" data-slot-index="6"></div>
+        <div id="trade-post-upgrade-menu" class="menu-overlay hidden"> <div class="menu-content">
+                <h3>Handelsposten-Upgrades</h3>
+                <p id="trade-post-upgrade-status">Verkaufspreis: 1x, Händler Tempo: 10s</p>
+                <button id="upgrade-trade-post-price-button" class="game-button">Preis erhöhen (Kosten: 20 Score)</button>
+                <button id="upgrade-trade-post-speed-button" class="game-button">Händler Tempo (Kosten: 30 Score)</button>
+                <button id="close-trade-post-upgrade-menu-button" class="game-button close-button">Schließen</button>
+            </div>
         </div>
+    </div>
 
-        <div id="build-menu" class="menu hidden">
-            <h3>Gebäude bauen</h3>
-            <button id="build-factory-button">Fabrik bauen</button>
-            <button id="build-trade-post-button">Handelsposten bauen</button>
-            <button id="close-build-menu-button">Schließen</button>
-        </div>
-
-        <div id="factory-upgrade-menu" class="menu hidden">
-            <h3>Fabrik Upgrade</h3>
-            <p id="factory-upgrade-status">Ertrag: X, Tempo: Y</p>
-            <button id="upgrade-factory-yield-button">Ertrag upgraden</button>
-            <button id="upgrade-factory-speed-button">Tempo upgraden</button>
-            <button id="close-factory-upgrade-menu-button">Schließen</button>
-        </div>
-
-        <div id="trade-post-upgrade-menu" class="menu hidden">
-            <h3>Handelsposten Upgrade</h3>
-            <p id="trade-post-upgrade-status">Verkaufspreis: X, Händler Tempo: Y</p>
-            <button id="upgrade-trade-post-price-button">Preis erhöhen</button>
-            <button id="upgrade-trade-post-speed-button">Händler Tempo</button>
-            <button id="close-trade-post-upgrade-menu-button">Schließen</button>
-        </div>
-
-        </div>
-
-    <script type="module" src="js/main.js"></script>
+     <script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -68,6 +68,30 @@ class GameManager {
     }
 
     /**
+     * Registriert den PlanetManager.
+     * @param {import('./managers/PlanetManager.js').default} manager
+     */
+    setPlanetManager(manager) { this.planetManager = manager; }
+
+    /**
+     * Registriert den CollectorManager.
+     * @param {import('./managers/CollectorManager.js').default} manager
+     */
+    setCollectorManager(manager) { this.collectorManager = manager; }
+
+    /**
+     * Registriert den FactoryManager.
+     * @param {import('./managers/FactoryManager.js').default} manager
+     */
+    setFactoryManager(manager) { this.factoryManager = manager; }
+
+    /**
+     * Registriert den TradeManager.
+     * @param {import('./managers/TradeManager.js').default} manager
+     */
+    setTradeManager(manager) { this.tradeManager = manager; }
+
+    /**
      * Aktualisiert den Score des Spielers.
      * @param {number} amount - Der Betrag, um den der Score geändert werden soll.
      */

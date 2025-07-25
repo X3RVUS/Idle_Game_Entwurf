@@ -164,12 +164,12 @@ class GameManager {
 
         // Factory Build Button
         if (this.ui.elements.buildFactoryButton && this.factoryManager) {
-            this.factoryManager.updateBuildButtonState(this.score, this.ui.elements.buildFactoryButton, this.ui.currentFactorySlotIndex);
+            this.factoryManager.updateBuildButtonState(this.score, this.ui.elements.buildFactoryButton, this.ui.currentSlotIndex);
         }
 
         // Trade Post Build Button
         if (this.ui.elements.buildTradePostButton && this.tradeManager) {
-            this.tradeManager.updateBuildButtonState(this.score, this.ui.elements.buildTradePostButton);
+            this.tradeManager.updateBuildButtonState(this.score, this.ui.elements.buildTradePostButton, this.ui.currentSlotIndex);
         }
 
         // Factory Upgrade Buttons

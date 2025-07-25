@@ -6,7 +6,7 @@ class UI {
     constructor() {
         this.elements = {}; // Speichert alle DOM-Element-Referenzen
         this.gameUnitPx = 1; // 1 game unit in Pixeln (wird dynamisch gesetzt)
-        this.currentFactorySlotIndex = -1; // Für Build Menu Logic
+        this.currentSlotIndex = -1; // Für Build Menu Logic
         this.currentSelectedFactory = null; // Aktuell ausgewähltes Fabrikobjekt für Upgrade-Menü
         this.currentSelectedTradePost = null; // Aktuell ausgewähltes Handelspostenobjekt für Upgrade-Menü
 
@@ -41,20 +41,16 @@ class UI {
         this.elements.upgradeStorageButton = document.getElementById('upgrade-storage-button');
         this.elements.upgradeCollectorYieldButton = document.getElementById('upgrade-collector-yield-button');
 
-        this.elements.factoryPlotElements = [];
-        // Die Schleife muss jetzt alle Fabrik-Slots von 0 bis maxSlots-1 erfassen
-        for (let i = 0; i < CONFIG.Factories.maxSlots; i++) {
-            const plotElement = document.getElementById(`factory-plot-${i}`);
+        this.elements.buildPlotElements = [];
+        const totalSlots = CONFIG.TradePost.slotIndex + 1;
+        for (let i = 0; i < totalSlots; i++) {
+            const plotElement = document.getElementById(`build-plot-${i}`);
             if (plotElement) {
-                this.elements.factoryPlotElements.push(plotElement);
+                this.elements.buildPlotElements.push(plotElement);
             } else {
-                // Diese Warnung sollte jetzt nur noch für wirklich fehlende IDs erscheinen,
-                // nicht mehr für den Handelsposten-Plot, wenn dieser eine andere ID hat.
-                log(`[WARNING] UI.initDOMElements: Factory plot with ID factory-plot-${i} not found.`);
+                log(`[WARNING] UI.initDOMElements: Build plot with ID build-plot-${i} not found.`);
             }
         }
-        // Der Handelsposten-Plot wird weiterhin separat geholt
-        this.elements.tradePostPlotElement = document.getElementById(`trade-post-plot-0`);
 
         this.elements.buildMenu = document.getElementById('build-menu');
         this.elements.buildFactoryButton = document.getElementById('build-factory-button');
@@ -173,21 +169,15 @@ class UI {
     /**
      * Zeigt das Build-Menü an einem bestimmten Slot an.
      * @param {number} slotIndex - Der Index des Slots.
-     * @param {'factory'|'tradePost'} type - Der Typ des Gebäudes, das gebaut werden soll.
      * @param {GameManager} gameManager - Instanz des GameManager.
      */
-    showBuildMenu(slotIndex, type, gameManager) {
-        this.currentFactorySlotIndex = slotIndex;
+    showBuildMenu(slotIndex, gameManager) {
+        this.currentSlotIndex = slotIndex;
         this.elements.buildMenu.classList.remove('hidden');
-        if (type === 'factory') {
-            this.elements.buildFactoryButton.classList.remove('hidden');
-            if (this.elements.buildTradePostButton) this.elements.buildTradePostButton.classList.add('hidden');
-        } else if (type === 'tradePost') {
-            this.elements.buildFactoryButton.classList.add('hidden');
-            if (this.elements.buildTradePostButton) this.elements.buildTradePostButton.classList.remove('hidden');
-        }
+        if (this.elements.buildFactoryButton) this.elements.buildFactoryButton.classList.remove('hidden');
+        if (this.elements.buildTradePostButton) this.elements.buildTradePostButton.classList.remove('hidden');
         gameManager.checkButtonStates(); // Buttons im Build-Menü aktualisieren
-        log(`Showing build menu for slot ${slotIndex}, type: ${type}`);
+        log(`Showing build menu for slot ${slotIndex}`);
     }
 
     /**
@@ -195,7 +185,7 @@ class UI {
      */
     hideBuildMenu() {
         this.elements.buildMenu.classList.add('hidden');
-        this.currentFactorySlotIndex = -1;
+        this.currentSlotIndex = -1;
         log('Build menu hidden.');
     }
 

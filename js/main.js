@@ -79,12 +79,8 @@ function performInit() {
     UI.elements.upgradeStorageButton.addEventListener('click', () => GameManager.upgradeStorage());
     UI.elements.upgradeGoodsStorageButton.addEventListener('click', () => GameManager.upgradeGoodsStorage());
 
-    // Fabrik und Handelsposten Bau/Upgrade Listener
+    // Bauplatz Listener
     FactoryManager.initializePlotListeners();
-    // Der Handelsposten-Plot-Listener ist Teil des TradeManager
-    if (UI.elements.tradePostPlotElement) {
-        UI.elements.tradePostPlotElement.addEventListener('click', () => UI.showBuildMenu(CONFIG.TradePost.slotIndex, 'tradePost', GameManager));
-    }
 
     // Build Menu Buttons
     UI.elements.buildFactoryButton.addEventListener('click', () => FactoryManager.buildFactory());

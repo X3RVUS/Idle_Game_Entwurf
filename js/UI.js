@@ -42,15 +42,18 @@ class UI {
         this.elements.upgradeCollectorYieldButton = document.getElementById('upgrade-collector-yield-button');
 
         this.elements.factoryPlotElements = [];
+        // Die Schleife muss jetzt alle Fabrik-Slots von 0 bis maxSlots-1 erfassen
         for (let i = 0; i < CONFIG.Factories.maxSlots; i++) {
             const plotElement = document.getElementById(`factory-plot-${i}`);
             if (plotElement) {
                 this.elements.factoryPlotElements.push(plotElement);
             } else {
-                // Logge eine Warnung, aber das ist für den Handelsposten-Plot okay
-                log(`[WARNING] UI.initDOMElements: Factory plot with ID factory-plot-${i} not found (might be trade-post-plot-0).`);
+                // Diese Warnung sollte jetzt nur noch für wirklich fehlende IDs erscheinen,
+                // nicht mehr für den Handelsposten-Plot, wenn dieser eine andere ID hat.
+                log(`[WARNING] UI.initDOMElements: Factory plot with ID factory-plot-${i} not found.`);
             }
         }
+        // Der Handelsposten-Plot wird weiterhin separat geholt
         this.elements.tradePostPlotElement = document.getElementById(`trade-post-plot-0`);
 
         this.elements.buildMenu = document.getElementById('build-menu');

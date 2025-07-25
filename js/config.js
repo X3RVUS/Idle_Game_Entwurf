@@ -84,7 +84,7 @@ export const CONFIG = {
 
     // Handelsposten-Einstellungen
     TradePost: {
-        slotIndex: 6,
+        slotIndex: 7,
         buildCost: 50,
         goodsConsumption: 1,
         baseValuePerGood: 10,

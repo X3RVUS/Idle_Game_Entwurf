@@ -30,25 +30,22 @@ class FactoryManager {
      * Fügt Event Listener zu den Fabrik-Bauplätzen hinzu.
      */
     initializePlotListeners() {
-        this.ui.elements.factoryPlotElements.forEach(plot => {
-            // Sicherstellen, dass der Plot nicht der Handelsposten-Plot ist (dessen Listener separat behandelt wird)
-            if (plot.id !== 'trade-post-plot-0') {
-                plot.addEventListener('click', () => this.ui.showBuildMenu(parseInt(plot.dataset.slotIndex), 'factory', this.gameManager));
-            }
+        this.ui.elements.buildPlotElements.forEach(plot => {
+            plot.addEventListener('click', () => this.ui.showBuildMenu(parseInt(plot.dataset.slotIndex), this.gameManager));
         });
-        log('Factory plot event listeners added.');
+        log('Build plot event listeners added.');
     }
 
     /**
      * Baut eine neue Fabrik an einem bestimmten Slot.
      */
     buildFactory() {
-        const slotIndex = this.ui.currentFactorySlotIndex;
+        const slotIndex = this.ui.currentSlotIndex;
         if (slotIndex === -1) return;
 
-        const targetPlot = document.getElementById(`factory-plot-${slotIndex}`);
+        const targetPlot = document.getElementById(`build-plot-${slotIndex}`);
         if (!targetPlot) {
-            log(`[ERROR] FactoryManager.buildFactory: Target plot factory-plot-${slotIndex} not found!`);
+            log(`[ERROR] FactoryManager.buildFactory: Target plot build-plot-${slotIndex} not found!`);
             return;
         }
 

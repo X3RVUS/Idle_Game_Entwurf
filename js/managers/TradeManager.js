@@ -33,19 +33,15 @@ class TradeManager {
      * Baut den Handelsposten an seinem vorgesehenen Slot.
      */
     buildTradePost() {
-        const slotIndex = this.ui.currentFactorySlotIndex; // Der UI hält den aktuell ausgewählten Slot
-        if (slotIndex !== CONFIG.TradePost.slotIndex) {
-            log(`[ERROR] TradeManager.buildTradePost: Attempted to build Trade Post in wrong slot: ${slotIndex}. Expected: ${CONFIG.TradePost.slotIndex}`);
-            return;
-        }
+        const slotIndex = this.ui.currentSlotIndex; // Der UI hält den aktuell ausgewählten Slot
         if (this.tradePost !== null) {
             log("Trade Post is already built.");
             return;
         }
 
-        const targetPlot = this.ui.elements.tradePostPlotElement;
+        const targetPlot = document.getElementById(`build-plot-${slotIndex}`);
         if (!targetPlot) {
-            log("[ERROR] TradeManager.buildTradePost: Trade post plot element not found for building!");
+            log("[ERROR] TradeManager.buildTradePost: Build plot element not found for building!");
             return;
         }
 
@@ -58,7 +54,7 @@ class TradeManager {
 
             targetPlot.parentNode.replaceChild(tradePostElement, targetPlot);
 
-            this.tradePost = new TradePost(tradePostElement, CONFIG.TradePost.slotIndex);
+            this.tradePost = new TradePost(tradePostElement, slotIndex);
 
             tradePostElement.addEventListener('click', () => {
                 this.ui.showTradePostUpgradeMenu(this.tradePost);
@@ -171,9 +167,12 @@ class TradeManager {
      * @param {number} currentScore - Aktueller Score des Spielers.
      * @param {HTMLElement} buildTradePostButton - Der Button.
      */
-    updateBuildButtonState(currentScore, buildTradePostButton) {
+    updateBuildButtonState(currentScore, buildTradePostButton, slotIndex) {
         const hasTradePost = this.tradePost !== null;
-        buildTradePostButton.disabled = currentScore < CONFIG.TradePost.buildCost || hasTradePost;
+        const factoryManager = this.gameManager.factoryManager;
+        const slotOccupied = factoryManager ? factoryManager.factories.some(f => f.slotIndex === slotIndex) : false;
+        const slotHasTrade = this.tradePost && this.tradePost.slotIndex === slotIndex;
+        buildTradePostButton.disabled = currentScore < CONFIG.TradePost.buildCost || hasTradePost || slotOccupied || slotHasTrade;
         // Text-Aktualisierung findet bereits im GameManager.checkButtonStates statt
     }
 

@@ -7,6 +7,7 @@ import PlanetManager from './managers/PlanetManager.js';
 import CollectorManager from './managers/CollectorManager.js';
 import FactoryManager from './managers/FactoryManager.js';
 import TradeManager from './managers/TradeManager.js';
+import LevelManager from './managers/LevelManager.js';
 
 // Globale DOM-Elemente für den Initialisierungscheck
 let gameContainerForLoadCheck;
@@ -44,6 +45,7 @@ function performInit() {
 
     // UI-Elemente zuweisen (UI.js kümmert sich um document.getElementById)
     UI.initDOMElements();
+    LevelManager.init(UI);
 
     // GameManager mit den benötigten UI-Referenzen initialisieren
     GameManager.init(
@@ -78,6 +80,9 @@ function performInit() {
     UI.elements.upgradeCollectorYieldButton.addEventListener('click', () => CollectorManager.upgradeCollectorYield());
     UI.elements.upgradeStorageButton.addEventListener('click', () => GameManager.upgradeStorage());
     UI.elements.upgradeGoodsStorageButton.addEventListener('click', () => GameManager.upgradeGoodsStorage());
+    if (UI.elements.nextLevelButton) {
+        UI.elements.nextLevelButton.addEventListener('click', () => LevelManager.advanceLevel());
+    }
 
     // Bauplatz Listener
     FactoryManager.initializePlotListeners();

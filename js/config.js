@@ -1,7 +1,7 @@
 export const CONFIG = {
     // Globale Spieleinstellungen
     Game: {
-        initialScore: 0,
+        initialScore: 1000,
         initialStorage: 0,
         initialMaxStorage: 100,
         gameUnitMinScale: 0.5,

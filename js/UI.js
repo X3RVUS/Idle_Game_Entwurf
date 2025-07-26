@@ -83,17 +83,21 @@ class UI {
         }
 
         // Diese Werte direkt in UI speichern, da sie oft benötigt werden
-        this.elements.miningBaseRenderedWidth = miningBaseElement.offsetWidth;
-        this.elements.miningBaseRenderedHeight = miningBaseElement.offsetHeight;
-        this.elements.miningBaseRenderedX = miningBaseElement.offsetLeft + this.elements.miningBaseRenderedWidth / 2;
-        this.elements.miningBaseRenderedY = miningBaseElement.offsetTop + this.elements.miningBaseRenderedHeight / 2;
+        const containerRect = this.elements.gameContainer.getBoundingClientRect();
+        const baseRect = miningBaseElement.getBoundingClientRect();
+
+        this.elements.miningBaseRenderedWidth = baseRect.width;
+        this.elements.miningBaseRenderedHeight = baseRect.height;
+        this.elements.miningBaseRenderedX = (baseRect.left - containerRect.left) + baseRect.width / 2;
+        this.elements.miningBaseRenderedY = (baseRect.top - containerRect.top) + baseRect.height / 2;
 
         planets.forEach(p => {
             const planetElement = p.element;
             if (planetElement && planetElement.offsetWidth) {
-                p.renderedX = planetElement.offsetLeft + planetElement.offsetWidth / 2;
-                p.renderedY = planetElement.offsetTop + planetElement.offsetHeight / 2;
-                p.renderedRadius = planetElement.offsetWidth / 2;
+                const rect = planetElement.getBoundingClientRect();
+                p.renderedX = (rect.left - containerRect.left) + rect.width / 2;
+                p.renderedY = (rect.top - containerRect.top) + rect.height / 2;
+                p.renderedRadius = rect.width / 2;
             }
         });
     }
@@ -128,8 +132,12 @@ class UI {
             log(`[WARNING] UI.getElementCenterInPercent: Element not available or container not rendered. Element: ${element ? element.id : 'N/A'}`);
             return { x: 0, y: 0 };
         }
-        const x = (element.offsetLeft + element.offsetWidth / 2) / this.elements.gameContainer.offsetWidth * 100;
-        const y = (element.offsetTop + element.offsetHeight / 2) / this.elements.gameContainer.offsetHeight * 100;
+
+        const containerRect = this.elements.gameContainer.getBoundingClientRect();
+        const rect = element.getBoundingClientRect();
+        const x = ((rect.left - containerRect.left) + rect.width / 2) / containerRect.width * 100;
+        const y = ((rect.top - containerRect.top) + rect.height / 2) / containerRect.height * 100;
+
         return { x, y };
     }
 
@@ -143,10 +151,15 @@ class UI {
             log(`[WARNING] UI.getElementTopLeftInPercent: Element not available or container not rendered. Element: ${element ? element.id : 'N/A'}`);
             return { x: 0, y: 0, width: 0, height: 0 };
         }
-        const x = element.offsetLeft / this.elements.gameContainer.offsetWidth * 100;
-        const y = element.offsetTop / this.elements.gameContainer.offsetHeight * 100;
-        const width = element.offsetWidth / this.elements.gameContainer.offsetWidth * 100;
-        const height = element.offsetHeight / this.elements.gameContainer.offsetHeight * 100;
+
+        const containerRect = this.elements.gameContainer.getBoundingClientRect();
+        const rect = element.getBoundingClientRect();
+
+        const x = (rect.left - containerRect.left) / containerRect.width * 100;
+        const y = (rect.top - containerRect.top) / containerRect.height * 100;
+        const width = rect.width / containerRect.width * 100;
+        const height = rect.height / containerRect.height * 100;
+
         return { x, y, width, height };
     }
 

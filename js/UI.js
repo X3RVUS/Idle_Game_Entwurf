@@ -43,15 +43,6 @@ class UI {
         this.elements.upgradeCollectorYieldButton = document.getElementById('upgrade-collector-yield-button');
 
         this.elements.buildPlotElements = [];
-        const totalSlots = CONFIG.TradePost.slotIndex + 1;
-        for (let i = 0; i < totalSlots; i++) {
-            const plotElement = document.getElementById(`build-plot-${i}`);
-            if (plotElement) {
-                this.elements.buildPlotElements.push(plotElement);
-            } else {
-                log(`[WARNING] UI.initDOMElements: Build plot with ID build-plot-${i} not found.`);
-            }
-        }
 
         this.elements.buildMenu = document.getElementById('build-menu');
         this.elements.buildFactoryButton = document.getElementById('build-factory-button');
@@ -71,6 +62,12 @@ class UI {
         this.elements.tradePostUpgradeStatusDisplay = document.getElementById('trade-post-upgrade-status');
 
         log('All DOM elements assigned in UI.');
+    }
+
+    refreshBuildPlotElements() {
+        this.elements.buildPlotElements = Array.from(
+            this.elements.miningBase.querySelectorAll('.build-plot')
+        );
     }
 
     /**

@@ -1,4 +1,5 @@
 import { CONFIG } from '../config.js';
+import { LEVEL_LAYOUTS } from '../levelLayouts.js';
 
 const BASE_COSTS = {
     collectorBuy: 10,
@@ -13,6 +14,9 @@ const BASE_COSTS = {
     tradePriceUpgrade: 20,
     tradeSpeedUpgrade: 30,
 };
+
+const SLOT_SIZE = 7; // in game units
+const GAP_SIZE = 1; // total gap between slots
 
 class LevelManager {
     constructor() {
@@ -47,19 +51,41 @@ class LevelManager {
 
     applyLevelVisuals() {
         if (!this.ui) return;
-        const sizeMultiplier = 1 + 0.1 * (this.level - 1);
-        const width = 40 * sizeMultiplier;
-        const height = 24 * sizeMultiplier;
-        this.ui.elements.miningBase.style.width = `calc(${width} * var(--game-unit))`;
-        this.ui.elements.miningBase.style.height = `calc(${height} * var(--game-unit))`;
 
-        const unlocked = this.level + 1; // level 1 => 2 slots
-        this.ui.elements.buildPlotElements.forEach((el, idx) => {
-            const container = el.parentElement;
-            if (container) {
-                container.style.display = idx < unlocked ? 'flex' : 'none';
-            }
+        const layout = LEVEL_LAYOUTS[this.level - 1] || LEVEL_LAYOUTS[0];
+
+        const step = SLOT_SIZE + GAP_SIZE;
+        const width = layout.cols * step;
+        const height = layout.rows * step;
+
+        const base = this.ui.elements.miningBase;
+        base.style.width = `calc(${width} * var(--game-unit))`;
+        base.style.height = `calc(${height} * var(--game-unit))`;
+        base.innerHTML = '';
+
+        this.ui.elements.buildPlotElements = [];
+
+        layout.slots.forEach((pos, idx) => {
+            const slotContainer = document.createElement('div');
+            slotContainer.classList.add('build-slot');
+            const centerX = (pos.x * step) + SLOT_SIZE / 2 + GAP_SIZE / 2;
+            const centerY = (pos.y * step) + SLOT_SIZE / 2 + GAP_SIZE / 2;
+            slotContainer.style.left = `calc(${centerX} * var(--game-unit))`;
+            slotContainer.style.top = `calc(${centerY} * var(--game-unit))`;
+
+            const plot = document.createElement('div');
+            plot.id = `build-plot-${idx}`;
+            plot.classList.add('build-plot');
+            plot.dataset.slotIndex = idx.toString();
+
+            slotContainer.appendChild(plot);
+            base.appendChild(slotContainer);
+            this.ui.elements.buildPlotElements.push(plot);
         });
+
+        if (typeof this.ui.refreshBuildPlotElements === 'function') {
+            this.ui.refreshBuildPlotElements();
+        }
     }
 
     advanceLevel() {

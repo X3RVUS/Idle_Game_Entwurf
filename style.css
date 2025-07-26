@@ -49,11 +49,6 @@ body {
     box-shadow: 0 0 calc(5 * var(--game-unit)) #00ff00;
     border: calc(0.5 * var(--game-unit)) solid #00cc00;
     z-index: 10;
-    display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
-    padding-top: calc(2 * var(--game-unit));
-    flex-wrap: wrap;
     box-sizing: border-box;
 }
 
@@ -283,15 +278,14 @@ body {
 
 /* --- Bauplatz-Stile --- */
 .build-slot {
+    position: absolute;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
     width: calc(7 * var(--game-unit));
     height: calc(7 * var(--game-unit));
-    margin: calc(0.5 * var(--game-unit));
+    transform: translate(-50%, -50%);
     box-sizing: border-box;
-    flex-shrink: 0;
 }
 
 .build-plot {

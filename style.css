@@ -50,7 +50,7 @@ body {
     border: calc(0.5 * var(--game-unit)) solid #00cc00;
     z-index: 10;
     display: flex;
-    justify-content: space-around;
+    justify-content: flex-start;
     align-items: flex-start;
     padding-top: calc(2 * var(--game-unit));
     flex-wrap: wrap;

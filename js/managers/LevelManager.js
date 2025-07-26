@@ -1,5 +1,20 @@
 import { CONFIG } from '../config.js';
 
+// Ship layout definition per level. Each level specifies how many
+// build plots are unlocked and how the base should be sized. The
+// `cols` and `rows` values define how many build plot slots fit
+// horizontally and vertically on the ship. This allows us to change the
+// actual form of the ship instead of only scaling it.
+const SHIP_LAYOUTS = {
+    1: { cols: 2, rows: 1, slots: 2 }, // two plots next to each other
+    // Level 2 forms an L-shape with two plots in the first row and one below
+    2: { cols: 2, rows: 2, slots: 3 },
+};
+
+// Width/height of a single build plot including margin. Used to size the
+// mining base according to the layout above.
+const SLOT_UNIT = 8;
+
 const BASE_COSTS = {
     collectorBuy: 10,
     collectorSpeed: 20,
@@ -47,17 +62,26 @@ class LevelManager {
 
     applyLevelVisuals() {
         if (!this.ui) return;
-        const sizeMultiplier = 1 + 0.1 * (this.level - 1);
-        const width = 40 * sizeMultiplier;
-        const height = 24 * sizeMultiplier;
+
+        // Determine layout for current level. If no specific layout is defined
+        // fallback to a simple horizontal expansion using the old logic.
+        const layout = SHIP_LAYOUTS[this.level] || {
+            cols: this.level + 1,
+            rows: 1,
+            slots: this.level + 1,
+        };
+
+        const width = layout.cols * SLOT_UNIT;
+        const height = layout.rows * SLOT_UNIT;
+
         this.ui.elements.miningBase.style.width = `calc(${width} * var(--game-unit))`;
         this.ui.elements.miningBase.style.height = `calc(${height} * var(--game-unit))`;
 
-        const unlocked = this.level + 1; // level 1 => 2 slots
+        // Show only the unlocked build plots
         this.ui.elements.buildPlotElements.forEach((el, idx) => {
             const container = el.parentElement;
             if (container) {
-                container.style.display = idx < unlocked ? 'flex' : 'none';
+                container.style.display = idx < layout.slots ? 'flex' : 'none';
             }
         });
     }

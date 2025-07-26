@@ -17,6 +17,15 @@ class TradeManager {
     }
 
     /**
+     * Aktualisiert die Positionsdaten des bestehenden Handelspostens.
+     */
+    updateTradePostPosition() {
+        if (this.tradePost) {
+            this.tradePost.updatePosition(this.ui);
+        }
+    }
+
+    /**
      * Initialisiert den TradeManager.
      * @param {HTMLElement} gameContainer - Der Haupt-Spiel-Container.
      * @param {GameManager} gameManager - Instanz des GameManager.
@@ -54,7 +63,9 @@ class TradeManager {
 
             targetPlot.parentNode.replaceChild(tradePostElement, targetPlot);
 
+
             this.tradePost = new TradePost(tradePostElement, slotIndex);
+            this.tradePost.updatePosition(this.ui);
 
             tradePostElement.addEventListener('click', () => {
                 this.ui.showTradePostUpgradeMenu(this.tradePost);
@@ -80,20 +91,20 @@ class TradeManager {
         const traderElement = document.createElement('div');
         traderElement.classList.add('trader-ship');
 
-        const tradePostTopLeft = this.ui.getElementTopLeftInPercent(this.tradePost.element);
-        const tradePostCenter = this.ui.getElementCenterInPercent(this.tradePost.element);
+        // Positionsdaten sicherstellen
+        this.tradePost.updatePosition(this.ui);
 
         traderElement.style.left = `110%`; // Startet rechts außerhalb des Bildschirms
-        traderElement.style.top = `${tradePostTopLeft.y + (tradePostTopLeft.height / 2)}%`;
+        traderElement.style.top = `${this.tradePost.centerY_percent}%`;
 
         this.gameContainer.appendChild(traderElement);
 
         const newTrader = new TraderShip(
             traderElement,
             110, // Start X
-            tradePostTopLeft.y + (tradePostTopLeft.height / 2), // Start Y
-            tradePostCenter.x, // Ziel X (Mitte des Handelspostens)
-            tradePostCenter.y, // Ziel Y (Mitte des Handelspostens)
+            this.tradePost.centerY_percent, // Start Y
+            this.tradePost.centerX_percent, // Ziel X (Mitte des Handelspostens)
+            this.tradePost.centerY_percent, // Ziel Y (Mitte des Handelspostens)
             this.gameManager.getCurrentGoods(), // Verkauft alle aktuellen Güter
             this.tradePost.traderSpeed
         );
@@ -106,6 +117,7 @@ class TradeManager {
      * @param {number} deltaTime - Die vergangene Zeit seit dem letzten Frame in Millisekunden.
      */
     updateTraders(deltaTime) {
+        this.updateTradePostPosition();
         // Händler spawnen, wenn genug Zeit vergangen ist und Güter vorhanden sind
         const currentTimeMs = Date.now();
         if (this.tradePost && this.gameManager.getCurrentGoods() > 0 && currentTimeMs - this.tradePost.lastTraderSpawnTime >= CONFIG.TradePost.traderSpawnIntervalMs) {

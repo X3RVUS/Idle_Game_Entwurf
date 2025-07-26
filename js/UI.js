@@ -35,6 +35,7 @@ class UI {
         this.elements.goodsArea = document.getElementById('goods-area');
         this.elements.goodsFill = document.getElementById('goods-fill');
         this.elements.upgradeGoodsStorageButton = document.getElementById('upgrade-goods-storage-button');
+        this.elements.nextLevelButton = document.getElementById('next-level-button');
 
         this.elements.buyCollectorButton = document.getElementById('buy-collector-button');
         this.elements.upgradeCollectorSpeedButton = document.getElementById('upgrade-collector-speed-button');

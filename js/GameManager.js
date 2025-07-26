@@ -1,10 +1,11 @@
 // js/GameManager.js
 import { CONFIG } from './config.js';
 import { log } from './utils/Utils.js';
+import LevelManager from './managers/LevelManager.js';
 
 class GameManager {
     constructor() {
-        this.score = CONFIG.Game.initialScore;
+        this.score = CONFIG.Game.initialScore * LevelManager.level;
         this.currentStorage = CONFIG.Game.initialStorage;
         this.maxStorage = CONFIG.Game.initialMaxStorage;
         this.currentGoods = CONFIG.Goods.initialGoods;
@@ -45,6 +46,13 @@ class GameManager {
         this.storageFill = storageFill;
         this.goodsFill = goodsFill;
         this.ui = ui;
+
+        // Startwerte basierend auf aktuellem Level
+        this.score = CONFIG.Game.initialScore * LevelManager.level;
+        this.currentStorage = CONFIG.Game.initialStorage;
+        this.maxStorage = CONFIG.Game.initialMaxStorage;
+        this.currentGoods = CONFIG.Goods.initialGoods;
+        this.maxGoods = CONFIG.Goods.initialMaxGoods;
 
         // Initialisiere Anzeigen
         this.updateScore(0);

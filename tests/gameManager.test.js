@@ -11,6 +11,7 @@ function createDOM() {
   };
 }
 
+// updateScore adjusts score and display
 test('updateScore adjusts score and display', async () => {
   jest.resetModules();
   const { default: gameManager } = await import('../js/GameManager.js');
@@ -21,6 +22,7 @@ test('updateScore adjusts score and display', async () => {
   expect(dom.scoreDisplay.textContent).toBe(`Score: ${CONFIG.Game.initialScore + 5}`);
 });
 
+// upgradeStorage increases capacity and decreases score
 test('upgradeStorage increases capacity and decreases score', async () => {
   jest.resetModules();
   const { default: gameManager } = await import('../js/GameManager.js');
